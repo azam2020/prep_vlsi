@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 2 (Part 3): Verilog Q&A (50 Questions) - VLSI Handbook</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        .qa-card { background: white; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .qa-header { background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 15px 20px; font-weight: 700; color: #0f172a; border-top-left-radius: 8px; border-top-right-radius: 8px; }
+        .qa-body { padding: 20px; }
+        .q-number { background: #0b3d91; color: white; padding: 3px 10px; border-radius: 4px; font-size: 0.85rem; margin-right: 10px; }
+        .tricky-badge { background: #dc2626; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; float: right; }
+        .concept-box { background-color: #f0fdf4; border-left: 4px solid #16a34a; padding: 12px 15px; margin-top: 15px; border-radius: 0 4px 4px 0; font-size: 0.95rem; }
+        .trap-box { background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 12px 15px; margin-top: 15px; border-radius: 0 4px 4px 0; font-size: 0.95rem; }
+        pre.v-code { background: #1e293b; color: #f8fafc; padding: 15px; border-radius: 6px; font-size: 0.9rem; margin: 10px 0; }
+    </style>
+</head>
+<body class="bg-light">
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html"><i class="fa-solid fa-microchip me-2"></i>VLSI Handbook</a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="verilog_part1.html">Part 1</a></li>
+                    <li class="nav-item"><a class="nav-link" href="verilog_part2.html">Part 2</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="#">Verilog Q&A (Part 3)</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <header class="bg-dark text-white py-4 mb-4 shadow">
+        <div class="container">
+            <h2>Chapter 2: Verilog HDL — Part 3 (Q101 to Q150)</h2>
+            <p class="mb-0 text-info">Tasks vs Functions, FSM Coding Architectures, Parameterization & Advanced RTL</p>
+        </div>
+    </header>
+
+    <main class="container my-4">
+
+        <!-- ================= SECTION 8: TASKS VS FUNCTIONS ================= -->
+        <h3 class="text-primary border-bottom pb-2 mb-4"><i class="fa-solid fa-toolbox me-2"></i>8. Tasks vs. Functions</h3>
+
+        <!-- Q101 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q101</span> What is the fundamental difference between a Task and a Function regarding execution time?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A <strong>Function</strong> must execute in <em>zero simulation time</em>. It cannot contain any timing delays (`#10`), event controls (`@(posedge clk)`), or wait statements. A <strong>Task</strong> can consume simulation time and can contain delays and clock edge triggers.</p>
+            </div>
+        </div>
+
+        <!-- Q102 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q102</span> Can a Function call a Task? Can a Task call a Function?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> 
+                <br>&bull; A Task <strong>CAN</strong> call a Function.
+                <br>&bull; A Function <strong>CANNOT</strong> call a Task (because calling a task might violate the function's strict zero-time execution rule).</p>
+            </div>
+        </div>
+
+        <!-- Q103 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q103</span> How many outputs can a Function return compared to a Task?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A Function returns exactly <strong>ONE</strong> value through its name (like a mathematical function). It must have at least one input. A Task does not return a value by its name; instead, it can have <strong>ZERO or MULTIPLE</strong> outputs driven via its `output` or `inout` port arguments.</p>
+            </div>
+        </div>
+
+        <!-- Q104 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q104</span> Are Tasks and Functions synthesizable?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> 
+                <br>&bull; <strong>Functions:</strong> Always synthesizable, provided they contain standard combinational logic without simulation-only system calls. They synthesize into combinational logic blocks.
+                <br>&bull; <strong>Tasks:</strong> Synthesizable <em>ONLY IF</em> they do not contain timing delays (`#`) or event controls (`@`). If a task contains delays, it is strictly for testbench simulation.</p>
+            </div>
+        </div>
+
+        <!-- Q105 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q105</span> <span class="tricky-badge">Tricky</span> What does the <code>automatic</code> keyword do in Verilog Tasks/Functions?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> By default, all variables inside a Verilog task/function are <strong>static</strong> (shared across all calls). If Task A is called concurrently from two different `always` blocks, they will overwrite each other's variables! Adding <code>automatic</code> (e.g., `task automatic my_task;`) forces the simulator to allocate dynamically instanced memory on the stack for each call, making it safe for concurrent or recursive execution.</p>
+            </div>
+        </div>
+
+        <!-- Q106 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q106</span> Can you write a recursive function in Verilog?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Yes, but <em>only</em> if the function is declared as <code>automatic</code>. A static function cannot be recursive because it only has one memory space for its variables.</p>
+            </div>
+        </div>
+
+        <!-- Q107 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q107</span> Where are non-synthesizable tasks predominantly used in the industry?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> In <strong>Testbenches (Verification)</strong>. Verification engineers use tasks heavily to create reusable Bus Functional Models (BFMs), such as <code>task write_ahb(addr, data);</code>, which toggles the specific clock-cycle-level signaling required to simulate a bus transaction.</p>
+            </div>
+        </div>
+
+        <!-- Q108 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q108</span> Can a Task have <code>inout</code> ports? Can a Function have <code>inout</code> ports?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A Task <strong>can</strong> have `input`, `output`, and `inout` ports. A Function <strong>must</strong> have at least one `input` port, but it <strong>cannot</strong> have `output` or `inout` ports in standard Verilog (SystemVerilog relaxes this, but standard Verilog forbids it).</p>
+            </div>
+        </div>
+
+        <!-- Q109 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q109</span> Can you drive a global module-level <code>reg</code> from inside a Task?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Yes. Tasks and functions have visibility into the module scope they are declared in. They can read and write to global `reg` variables without needing to pass them explicitly through ports.</p>
+            </div>
+        </div>
+
+        <!-- Q110 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q110</span> How are arguments passed to Tasks in Verilog: Pass by Value or Pass by Reference?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Verilog strictly uses <strong>Pass by Value</strong>. When a task is called, the inputs are copied into the task's local variables. When the task finishes, its outputs are copied back out to the caller. (SystemVerilog introduces `ref` for pass by reference).</p>
+            </div>
+        </div>
+
+        <!-- Q111 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q111</span> True or False: Functions can contain non-blocking assignments (`<=`).</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> <strong>False.</strong> Functions are strictly meant to model combinational behavior (zero-time). They must only use blocking assignments (`=`). Using `<=`, which defers assignment to the NBA region, violates zero-time completion.</p>
+            </div>
+        </div>
+
+        <!-- Q112 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q112</span> Write the syntax for declaring and calling a basic function that adds two 8-bit numbers.</div>
+            <div class="qa-body">
+                <pre class="v-code">function [8:0] add_nums;
+    input [7:0] a, b;
+    begin
+        add_nums = a + b; // Assign to the function's name to return
+    end
+endfunction
+
+// Calling it:
+wire [8:0] sum = add_nums(x, y);</pre>
+            </div>
+        </div>
+
+        <!-- Q113 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q113</span> What is a constant function?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A function whose arguments are all compile-time constants (e.g., parameters). The Verilog compiler executes the function <em>during compilation/elaboration</em>, not during runtime, and replaces the call with the calculated constant value. Commonly used to calculate parameter widths (like `$clog2`).</p>
+            </div>
+        </div>
+
+        <!-- Q114 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q114</span> Can you declare a Task outside of a module?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> In standard Verilog-2001, <strong>NO</strong>. Tasks and Functions must be declared inside a `module`. (SystemVerilog allows declaring them in `packages` or `interfaces`).</p>
+            </div>
+        </div>
+
+        <!-- Q115 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q115</span> <span class="tricky-badge">Tricky</span> What happens if you call a task in a continuous assignment? (e.g., <code>assign out = my_task(in);</code>)</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> It will trigger a compilation error! Tasks do not return a value to the expression they are called from, and they cannot be used in continuous `assign` statements. Only Functions can be called in continuous assignments.</p>
+            </div>
+        </div>
+
+
+        <!-- ================= SECTION 9: FSM CODING STYLES ================= -->
+        <h3 class="text-primary border-bottom pb-2 my-4"><i class="fa-solid fa-diagram-project me-2"></i>9. FSM Coding Architectures (Moore/Mealy)</h3>
+
+        <!-- Q116 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q116</span> What is the industry standard coding architecture for FSMs in Verilog?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> The <strong>3-Always Block</strong> architecture.</p>
+                <ol>
+                    <li>Sequential Block: Updates <code>current_state <= next_state</code>.</li>
+                    <li>Combinational Block: Computes <code>next_state</code> based on inputs and <code>current_state</code>.</li>
+                    <li>Output Block: Computes outputs (can be combinational or registered).</li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- Q117 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q117</span> Why is a 1-Always Block FSM (putting state updates and next-state logic in the same clocked block) heavily discouraged?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> It leads to spaghetti code that is extremely hard to debug, makes registering outputs difficult, and often causes the logic to become dependent on the clock cycle routing rather than the pure state machine logic. It mixes memory abstraction with logic abstraction.</p>
+            </div>
+        </div>
+
+        <!-- Q118 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q118</span> How do you define FSM states securely in Verilog?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Using <code>localparam</code>. 
+                <pre class="v-code">localparam IDLE = 2'b00, 
+           READ = 2'b01, 
+           WRITE = 2'b10;</pre></p>
+                <div class="concept-box">
+                    <strong>Concept:</strong> Never use <code>`define</code> for states because macros are global and will conflict with other modules that also have an "IDLE" state. Never use <code>parameter</code> because states should not be overridable during instantiation. <code>localparam</code> provides safe, local, immutable constants.
+                </div>
+            </div>
+        </div>
+
+        <!-- Q119 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q119</span> <span class="tricky-badge">Tricky</span> What is the fatal flaw with a pure Mealy Machine output, and how do we fix it in RTL?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A pure Mealy output depends directly on combinational inputs. If the external inputs glitch (bounce between 0 and 1) between clock edges, those glitches will immediately propagate straight through the FSM to the outputs, corrupting downstream logic.</p>
+                <p><strong>Fix:</strong> We use a <strong>Registered Mealy Output</strong> (syncing the combinational output to a Flip-Flop before it leaves the module) to absorb the glitches, though this delays the output by one clock cycle.</p>
+            </div>
+        </div>
+
+        <!-- Q120 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q120</span> Write the sequential State Update block for a 3-block FSM.</div>
+            <div class="qa-body">
+                <pre class="v-code">always @(posedge clk or negedge rst_n) begin
+    if (!rst_n)
+        current_state &lt;= IDLE;
+    else
+        current_state &lt;= next_state;
+end</pre>
+            </div>
+        </div>
+
+        <!-- Q121 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q121</span> In the next-state logic block, why MUST you use blocking assignments (<code>=</code>)?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> The next-state block is purely combinational (<code>always @(*)</code>). Per the Golden Rule of Verilog, combinational logic must use blocking assignments to evaluate instantly without incurring delta-cycle delays in simulation.</p>
+            </div>
+        </div>
+
+        <!-- Q122 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q122</span> What happens if you forget the <code>default: next_state = IDLE;</code> clause in your FSM next-state case statement?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> The synthesis tool will infer a Level-Sensitive Latch. The FSM will freeze/lock up in simulation under unmapped conditions, and the silicon will fail static timing analysis.</p>
+            </div>
+        </div>
+
+        <!-- Q123 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q123</span> Reverse Engineering: You look at an FSM's output block. It is written as <code>always @(*) begin out = (current_state == READ) && (in_ready == 1); end</code>. Is this Moore or Mealy?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> <strong>Mealy.</strong> The output depends on the `current_state` AND a current input signal (`in_ready`). If it only depended on `current_state`, it would be a Moore machine.</p>
+            </div>
+        </div>
+
+        <!-- Q124 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q124</span> What is "State Explosion" in FSM design?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> State explosion occurs when you try to design a single, massive FSM to control multiple independent processes. The number of states multiplies exponentially (e.g., Process A has 4 states, Process B has 5 states &rarr; Combined FSM requires 20 states). The solution is to use communicating, hierarchical FSMs.</p>
+            </div>
+        </div>
+
+        <!-- Q125 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q125</span> <span class="tricky-badge">Tricky</span> What does the synthesis attribute <code>/* synopsys safe_fsm */</code> do?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> In hostile environments (e.g., space radiation), an SEU (Single Event Upset) might flip a flip-flop bit, pushing the FSM into an invalid, undefined state that isn't in your code. Normally, the FSM would hang forever. <code>safe_fsm</code> forces the synthesis tool to build recovery logic that automatically forces the FSM back to the reset/IDLE state if an illegal state vector is detected.</p>
+            </div>
+        </div>
+
+        <!-- Q126 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q126</span> How does One-Hot encoding optimize the next-state combinational logic?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> In One-Hot, only one bit is High per state. The next-state logic equation for any state simplifies to just checking the 1-bit status of the preceding states. It completely eliminates the need for wide, deep decoding logic (no multi-bit comparators needed), allowing the FSM to run at much higher clock frequencies.</p>
+            </div>
+        </div>
+
+        <!-- Q127 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q127</span> Why use Gray Code encoding for FSMs crossing clock domains?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> In Gray code, only 1 bit transitions between adjacent states. If an asynchronous clock samples the state during a transition, it will either read the old state perfectly or the new state perfectly. It will never read a garbage intermediate state. (If transitioning from 01 to 10 in binary, sampling during the transition could incorrectly yield 00 or 11).</p>
+            </div>
+        </div>
+
+        <!-- Q128 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q128</span> Should FSM outputs be registered? Why?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Yes, registering outputs (syncing them to a Flip-Flop) is a best practice. It eliminates glitches, provides clean timing for the receiving block (full clock cycle available for setup time), and isolates internal FSM combinational delays from downstream modules.</p>
+            </div>
+        </div>
+
+        <!-- Q129 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q129</span> What is the output delay of a Moore Machine compared to the state change?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A pure combinational Moore output changes <em>immediately</em> after the clock edge updates the state. However, because it relies on the state changing, it inherently lags the input that caused the state change by one full clock cycle.</p>
+            </div>
+        </div>
+
+        <!-- Q130 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q130</span> How do you force a synthesis tool to use One-Hot encoding if you wrote your states in binary?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> You pass an attribute or pragma to the compiler directly in the RTL.
+                <pre class="v-code">(* fsm_encoding = "one_hot" *) reg [2:0] state;</pre>
+                Modern synthesis tools generally ignore your specific <code>localparam</code> values anyway and re-encode FSMs automatically based on area/speed optimization algorithms unless explicitly instructed not to.</p>
+            </div>
+        </div>
+
+
+        <!-- ================= SECTION 10: PARAMETERIZATION & ADVANCED RTL ================= -->
+        <h3 class="text-primary border-bottom pb-2 my-4"><i class="fa-solid fa-layer-group me-2"></i>10. Parameterization & Advanced Concepts</h3>
+
+        <!-- Q131 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q131</span> What are the two ways to override a <code>parameter</code> during module instantiation? Which is preferred?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>1. <strong>Positional:</strong> <code>my_mod #(8, 4) u1 (clk, in, out);</code>
+                <br>2. <strong>Named (Preferred):</strong> <code>my_mod #(.WIDTH(8), .DEPTH(4)) u1 (clk, in, out);</code>
+                <br>Named override is the industry standard because it prevents fatal mapping errors if the parameter order changes in the sub-module.</p>
+            </div>
+        </div>
+
+        <!-- Q132 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q132</span> What is <code>defparam</code>, and why is it deprecated?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> <code>defparam</code> allows overriding a parameter from anywhere in the testbench using hierarchical paths (e.g., <code>defparam top.u1.my_mod.WIDTH = 16;</code>). It is deprecated (banned in modern RTL) because it destroys modularity and makes the code impossible for synthesis tools to compile predictably in a bottom-up flow.</p>
+            </div>
+        </div>
+
+        <!-- Q133 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q133</span> <span class="tricky-badge">Tricky</span> Can a <code>localparam</code> be overridden during instantiation?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> <strong>NO.</strong> That is the entire purpose of <code>localparam</code>. It protects internal constants (like FSM state encodings or calculated bus widths) from being accidentally altered by a higher-level module.</p>
+            </div>
+        </div>
+
+        <!-- Q134 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q134</span> How do you parameterize a module such that the address width automatically adjusts based on the Memory Depth parameter?</div>
+            <div class="qa-body">
+                <pre class="v-code">module memory #(parameter DEPTH = 256) (
+    // Automatically calculate address width
+    input [$clog2(DEPTH)-1:0] addr, 
+    ...
+);</pre>
+            </div>
+        </div>
+
+        <!-- Q135 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q135</span> How do you initialize a Memory/ROM array from a text file in Verilog?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Using system tasks <code>$readmemb</code> (for binary files) or <code>$readmemh</code> (for hex files). These are executed inside an <code>initial</code> block.</p>
+                <pre class="v-code">reg [7:0] rom [0:255];
+initial begin
+    $readmemh("rom_data.hex", rom);
+end</pre>
+            </div>
+        </div>
+
+        <!-- Q136 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q136</span> Is <code>$readmemh</code> synthesizable?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> For ASICs, generally <strong>No</strong>. ASIC ROMs are hard-coded physically. For FPGAs, <strong>YES!</strong> FPGA synthesis tools (Vivado/Quartus) will synthesize <code>$readmemh</code> inside an <code>initial</code> block and bake the hex file directly into the bitstream to initialize BRAM blocks.</p>
+            </div>
+        </div>
+
+        <!-- Q137 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q137</span> Can a <code>genvar</code> variable be read during normal simulation time (e.g., inside an <code>always @(posedge clk)</code> block)?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> <strong>NO.</strong> A <code>genvar</code> exists exclusively during the compilation/elaboration phase to unroll loops and instantiate hardware. Once the design is compiled, the <code>genvar</code> ceases to exist. It has no physical hardware representation.</p>
+            </div>
+        </div>
+
+        <!-- Q138 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q138</span> Write the syntax for declaring a multi-dimensional array (e.g., a 3D array: 4 arrays, each holding 16 words, each 8-bits wide).</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <pre class="v-code">reg [7:0] memory_3d [0:3][0:15];</pre>
+                <div class="concept-box">
+                    <strong>Rule:</strong> Packed dimensions (bit-width) go <em>before</em> the name. Unpacked dimensions (depth/arrays) go <em>after</em> the name, ordered left-to-right.
+                </div></p>
+            </div>
+        </div>
+
+        <!-- Q139 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q139</span> Explain the scope difference between <code>`define</code> and <code>parameter</code>.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> 
+                <br>&bull; <code>`define</code>: Lexical scope. Once defined, it remains active across <strong>ALL</strong> subsequently compiled files until a <code>`undef</code> is encountered. It pollutes the global namespace.
+                <br>&bull; <code>parameter</code>: Module scope. It exists only within the <code>endmodule</code> boundary of the module it is declared in.</p>
+            </div>
+        </div>
+
+        <!-- Q140 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q140</span> Can a Verilog <code>parameter</code> hold a String?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Yes. Strings in standard Verilog are just arrays of 8-bit ASCII characters. 
+                <pre class="v-code">parameter FSM_NAME = "MAIN_CTRL";</pre>
+                This is heavily used in testbenches for logging dynamic messages.</p>
+            </div>
+        </div>
+
+        <!-- Q141 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q141</span> What does the compiler directive <code>`timescale 1ns / 1ps</code> mean?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> It defines simulation time units and precision.
+                <br>&bull; <code>1ns</code> (Reference Time Unit): If you write <code>#5</code>, the simulator delays for 5 ns.
+                <br>&bull; <code>1ps</code> (Precision): The simulator rounds all delay fractions to the nearest picosecond. (e.g., <code>#1.0005</code> becomes <code>#1.001</code> ns).</p>
+            </div>
+        </div>
+
+        <!-- Q142 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q142</span> What happens if Module A has <code>`timescale 1ns/1ps</code> and Module B has <code>`timescale 1us/1ns</code>, and they are compiled together?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> The simulator will use the local timescale for each module when calculating delays, BUT the overall simulation global precision drops to the smallest precision defined anywhere in the design (1ps in this case). This can cause massive simulation slowdowns.</p>
+            </div>
+        </div>
+
+        <!-- Q143 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q143</span> What is a Verilog Attribute? Give an example.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Attributes pass specific instructions to the synthesis or simulation tool without changing the RTL logic. They are wrapped in <code>(* *)</code>. 
+                <br>Example: <code>(* keep = "true" *) wire debug_sig;</code> (Tells synthesis NOT to delete this wire even if it appears to be dead logic).</p>
+            </div>
+        </div>
+
+        <!-- Q144 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q144</span> Can a Verilog module have zero ports?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Yes. <code>module tb_top; ... endmodule</code>. This is exactly how Top-Level Testbenches are defined. They have no physical I/O to the outside world; they generate clocks and stimulus internally.</p>
+            </div>
+        </div>
+
+        <!-- Q145 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q145</span> <span class="tricky-badge">Tricky</span> What does <code>a = b &lt;&lt; c;</code> do if `c` is unknown (`X`)?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> If the shift amount is unknown (`X` or `Z`), the entire result `a` becomes <code>X</code>. The simulator cannot guess how many places to shift.</p>
+            </div>
+        </div>
+
+        <!-- Q146 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q146</span> What is an Implicit Wire declaration, and how does it cause bugs?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> If you connect a signal to a module instantiation port but forget to declare that signal, Verilog automatically creates an implicit 1-bit wire. If the actual port was 32-bits wide, 31 bits get silently truncated/disconnected. Fix: Use <code>`default_nettype none</code>.</p>
+            </div>
+        </div>
+
+        <!-- Q147 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q147</span> How do you force a combinational loop to break during simulation (e.g., to model a ring oscillator in a testbench)?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> You must insert a small delay. <code>assign #1 inv_out = ~inv_out;</code>. Without the `#1`, the simulator will evaluate the loop infinitely at time 0 (delta cycle infinite loop) and freeze.</p>
+            </div>
+        </div>
+
+        <!-- Q148 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q148</span> Can you initialize a `reg` at declaration? (e.g., <code>reg a = 1'b1;</code>). Is it synthesizable?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Yes, you can. For ASICs, this is generally <strong>IGNORED</strong> by synthesis tools (they require a physical reset pin). For FPGAs, this is highly recommended and perfectly synthesizable to set the power-on SRAM bit state.</p>
+            </div>
+        </div>
+
+        <!-- Q149 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q149</span> What does <code>assign (strong1, weak0) y = a;</code> mean?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> It defines <strong>Drive Strength</strong>. It tells the simulator that if `a` is 1, it pulls the wire with strong (VDD) force. If `a` is 0, it pulls with weak (pull-down resistor) force. This is heavily used to model I/O pads and I2C open-drain pull-ups in gate-level simulations.</p>
+            </div>
+        </div>
+
+        <!-- Q150 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q150</span> <span class="tricky-badge">The Final Test</span> You have a parameter <code>W = 8</code>. You write <code>assign out = -1;</code> where <code>out</code> is <code>W</code> bits wide. What is the value of <code>out</code> in binary?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> <code>8'b1111_1111</code>.</p>
+                <div class="concept-box">
+                    <strong>Concept:</strong> -1 in 2's complement is all 1s. Verilog evaluates the -1, sees the LHS is 8-bits wide, and safely sign-extends the all-1s pattern across the entire 8-bit bus.
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="bg-dark text-center text-white py-4 mt-5 border-top border-secondary">
+        <p class="mb-0">© 2026 Complete VLSI Interview Handbook. Crafted for silicon engineers.</p>
+    </footer>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
