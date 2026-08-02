@@ -1,1 +1,467 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 5 (Part 1): Physical Design Q&A - VLSI Handbook</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          displayMath: [['$$', '$$'], ['\\[', '\\]']]
+        }
+      };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        .qa-card { background: white; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .qa-header { background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 15px 20px; font-weight: 700; color: #0f172a; border-top-left-radius: 8px; border-top-right-radius: 8px; }
+        .qa-body { padding: 20px; }
+        .q-number { background: #0b3d91; color: white; padding: 3px 10px; border-radius: 4px; font-size: 0.85rem; margin-right: 10px; }
+        .tricky-badge { background: #dc2626; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; float: right; }
+        .concept-box { background-color: #f0fdf4; border-left: 4px solid #16a34a; padding: 12px 15px; margin-top: 15px; border-radius: 0 4px 4px 0; font-size: 0.95rem; }
+    </style>
+</head>
+<body class="bg-light">
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html"><i class="fa-solid fa-microchip me-2"></i>VLSI Handbook</a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="sta_part1.html">Ch 4 (STA)</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="#">PD Q&A (Part 1)</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <header class="bg-dark text-white py-4 mb-4 shadow">
+        <div class="container">
+            <h2>Chapter 5: Physical Design — Part 1 (Q1 to Q50)</h2>
+            <p class="mb-0 text-info">PD Inputs, Floorplanning, Power Planning, and Placement Strategies</p>
+        </div>
+    </header>
+
+    <main class="container my-4">
+
+        <!-- ================= SECTION 1: PD BASICS & INPUTS ================= -->
+        <h3 class="text-primary border-bottom pb-2 mb-4"><i class="fa-solid fa-file-import me-2"></i>1. Physical Design Basics & Inputs</h3>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q1</span> What is Physical Design (PD) in the ASIC flow?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Physical Design is the process of transforming a synthesized logical netlist into a physical geometric representation (layout). It involves Floorplanning, Placement, Clock Tree Synthesis (CTS), Routing, and Verification (DRC/LVS) to generate the final GDSII file for manufacturing.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q2</span> List all the required inputs to start the Physical Design phase.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>1. Synthesized Gate-Level Netlist (usually `.v` format).
+                <br>2. SDC (Synopsys Design Constraints) file for timing rules.
+                <br>3. Logical Libraries (`.lib`) for delay and power models.
+                <br>4. Physical Libraries (LEF files) for geometric cell abstracts.
+                <br>5. Technology File (`.tf`) for DRC rules and metal layer definitions.
+                <br>6. RC Extraction Models (TLU+ or Captable files) for parasitic estimation.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q3</span> What is the difference between a `.lib` file and a LEF file?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> 
+                <br>&bull; <strong>`.lib` (Liberty):</strong> Contains purely electrical data. It defines the timing (delay tables), power, and functionality of standard cells.
+                <br>&bull; <strong>LEF (Library Exchange Format):</strong> Contains physical abstract data. It defines the cell's physical boundaries (size), pin locations, and metal blockage layers. It does <em>not</em> contain internal transistor-level polygons.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q4</span> What is a DEF file?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> DEF (Design Exchange Format) contains the design-specific physical layout data. While LEF contains the library rules, DEF contains the actual coordinates of where every cell is placed, how the power grid is drawn, and the routing connections for your specific chip.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q5</span> What is a Standard Cell? What are its geometric constraints?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A predefined, pre-verified physical layout of a basic logic gate (e.g., AND, OR, DFF). 
+                <br><strong>Constraint:</strong> All standard cells in a specific library have a <strong>fixed uniform height</strong> (so they can snap together into horizontal placement rows sharing power/ground rails) but can have <strong>variable widths</strong> depending on their drive strength.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q6</span> What are Tie-High and Tie-Low cells, and why are they used?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> In the RTL, designers often tie unused inputs to $1'b1$ or $1'b0$. Connecting a sensitive gate input directly to the global $V_{DD}$ or GND rail is dangerous due to ESD spikes and ground bounce. Tie cells safely step down the voltage/current to provide a stable Logic 1 or 0 without risking oxide breakdown.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q7</span> What is a TLU+ file used for?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> TLU+ (Table Look-Up Plus) files contain advanced RC (Resistance and Capacitance) extraction models. They translate the physical wire lengths and spacing defined in the tech file into accurate parasitic RC values used by the STA engine during routing.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q8</span> What is "Sanity Check" before Floorplanning?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Ensuring the inputs are clean before starting physical work. This includes checking for unconstrained paths in the SDC, ensuring all cells in the netlist have matching LEF and `.lib` definitions, and verifying there are no multidriven nets or floating inputs.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q9</span> What is the difference between Pre-layout STA and Post-layout STA?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> 
+                <br>&bull; <strong>Pre-layout STA (Synthesis):</strong> Uses Wire Load Models (WLM) which statistically guess wire delays based on fan-out. It is an estimation.
+                <br>&bull; <strong>Post-layout STA:</strong> Uses actual extracted RC parasitics (SPEF) from the physically routed wires. It is highly accurate and definitive.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q10</span> What does the term "GDSII" stand for, and what is it?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Graphic Design System II. It is the final binary file format that represents the complete, flattened, transistor-and-metal 2D geometry of the chip. This is the exact blueprint sent to TSMC/Intel for photolithography mask generation ("Tapeout").</p>
+            </div>
+        </div>
+
+
+        <!-- ================= SECTION 2: FLOORPLANNING & MACROS ================= -->
+        <h3 class="text-primary border-bottom pb-2 my-4"><i class="fa-solid fa-border-all me-2"></i>2. Floorplanning & Macro Placement</h3>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q11</span> What is Floorplanning?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> The first major step in PD. It involves defining the size of the chip (Core/Die area), allocating I/O pad locations, placing large hard IP blocks (Macros like SRAMs/PLLs), defining power routing structures, and creating placement blockages.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q12</span> Define Core Area vs Die Area.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> 
+                <br>&bull; <strong>Die Area:</strong> The absolute total physical boundary of the silicon chip, including the I/O pad ring and seal rings.
+                <br>&bull; <strong>Core Area:</strong> The inner region where standard cells, macros, and actual logic are placed. The Core is strictly inside the Die.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q13</span> Write the equation for Aspect Ratio.</div>
+            <div class="qa-body">
+                <div class="equation-box">$Aspect Ratio = \frac{Height}{Width}$</div>
+                <p>If Aspect Ratio = 1, the chip is a perfect square. If it is 0.5, the chip is a rectangle twice as wide as it is tall.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q14</span> <span class="tricky-badge">Numerical</span> Calculate the Core Area for a design with $10,000 \mu m^2$ of standard cells, $5,000 \mu m^2$ of macros, and a target Utilization of 0.75 (75%).</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> 
+                <br>$Total\_Logic\_Area = 10,000 + 5,000 = 15,000 \mu m^2$
+                <br>$Core\_Area = \frac{Total\_Logic\_Area}{Utilization} = \frac{15,000}{0.75} = 20,000 \mu m^2$.</p>
+                <div class="concept-box">
+                    <strong>Concept:</strong> The remaining 25% ($5,000 \mu m^2$) is empty white space left intentionally for routing tracks, clock buffers, and hold-time fixing cells during the later stages of the flow.
+                </div>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q15</span> What are the golden guidelines for Macro Placement?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>1. Place macros at the <strong>corners/edges</strong> of the core to free up the center for standard cell routing.
+                <br>2. Orient macro pins facing inward toward the core to minimize routing detours.
+                <br>3. Group macros that communicate heavily close together.
+                <br>4. Leave sufficient channels (spacing) between macros to prevent routing congestion.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q16</span> What are "Flylines" (Flight lines) in Floorplanning?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Virtual straight lines drawn by the EDA tool indicating the logical connectivity between macros, or between macros and I/O pins. Designers use flylines to visualize data flow and optimize macro placement before actual routing exists.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q17</span> What is a Macro Halo (Keep-Out Margin)?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A defined boundary around a macro where standard cells are <strong>forbidden</strong> from being placed. It prevents standard cells from being shoved too close to the macro, which would block access to the macro's pins and cause severe routing congestion and DRC violations.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q18</span> Define Hard, Soft, and Partial Placement Blockages.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>&bull; <strong>Hard Blockage:</strong> No standard cells can be placed here at all.
+                <br>&bull; <strong>Soft Blockage:</strong> Cells cannot be placed here during initial global placement, but the tool is allowed to push cells here later during optimization (e.g., CTS/Hold fixing).
+                <br>&bull; <strong>Partial Blockage:</strong> Limits cell density. (e.g., A 40% partial blockage means only 40% of the area can be filled, preventing congestion hotspots).</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q19</span> What is the "Notch Rule" in Floorplanning?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> If two macros are placed very close to each other, they create a narrow channel or "notch". If this channel is narrower than a certain threshold, the router cannot safely pass wires through it without DRC spacing errors. To fix a notch violation, either move the macros further apart (to open a valid routing channel) or push them flush together (closing the notch completely).</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q20</span> <span class="tricky-badge">Tricky</span> Can you place standard cells OVER a macro?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Generally, <strong>NO</strong>. Macros contain all physical layers from diffusion up to their internal metal routing layers. Placing a standard cell on top of a macro would result in physical layer collisions (shorts). Standard cells are only placed in the core white space.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q21</span> What is an Endcap cell?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Physical cells placed at the extreme left and right ends of every standard cell row. They do not perform logic. They protect the active standard cells from optical lithography distortion (Well Proximity Effects) and ensure the N-well/P-substrate boundaries are safely terminated.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q22</span> What defines I/O Pin placement?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Pin placement is often dictated by the external package requirements (the PCB). A constraints file tells the tool where the pins must be placed on the die boundary. Poor pin placement causes crisscrossing flylines and massive routing congestion in the core.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q23</span> What is a Seal Ring?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A continuous ring of metal and vias placed at the absolute extreme outer edge of the die. It prevents physical cracks, moisture, and chemical contaminants from creeping into the active silicon core when the wafer is mechanically diced (sawed) into individual chips.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q24</span> How do you estimate the routing channel width needed between two macros?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Count the total number of pins on the facing sides of the macros. Multiply that by the minimum metal wire pitch (width + spacing). Add a safety margin (e.g., 20%) to allow for power routing and buffer insertion.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q25</span> What happens if you orient a macro's pins toward the die edge instead of the core?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> You create a massive routing detour. The signals must exit the macro, route all the way around the outside of the macro, and back into the core. This destroys timing, eats up routing tracks, and increases dynamic power (extra wire capacitance).</p>
+            </div>
+        </div>
+
+
+        <!-- ================= SECTION 3: POWER PLANNING ================= -->
+        <h3 class="text-primary border-bottom pb-2 my-4"><i class="fa-solid fa-plug me-2"></i>3. Power Planning (PDN)</h3>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q26</span> What is Power Planning?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> The process of creating a robust, low-resistance network to distribute $V_{DD}$ and GND to millions of standard cells and macros evenly, preventing EM (Electromigration) and IR Drop failures.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q27</span> What are the three hierarchical levels of a Power Grid?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>1. <strong>Power Rings:</strong> Outer thick loops surrounding the core or macros.
+                <br>2. <strong>Power Stripes:</strong> Thick vertical and horizontal mesh lines dropping down across the core.
+                <br>3. <strong>Power Rails:</strong> The lowest-level thin horizontal lines that directly connect to the $V_{DD}$/GND pins of the standard cells.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q28</span> Why are Power Rings and Stripes routed on the highest (top) metal layers?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Upper metal layers (like M7, M8) are physically thicker and wider than lower layers. This gives them the absolute lowest Resistance ($R$) and highest current-carrying capacity (preventing EM). Lower layers (M1, M2) are kept thin for dense local signal routing.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q29</span> <span class="tricky-badge">Tricky</span> If standard cells exist on M1, and power stripes are on M8, how does power actually reach the cells?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Through <strong>Via Stacks</strong>. At the intersections where vertical M8 stripes cross horizontal M1 rails, the tool drops a continuous vertical pillar of vias (M8 $\rightarrow$ M7 $\rightarrow$ M6... $\rightarrow$ M1) to connect the grid directly down to the cell.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q30</span> How do you fix Static IR Drop during Power Planning?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> You must decrease the resistance of the grid. You do this by making the power stripes <strong>wider</strong> or placing them <strong>closer together</strong> (increasing mesh density). You also ensure plenty of I/O power pads are distributed around the die to inject power from multiple angles.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q31</span> What is the cost of adding too many power stripes to fix IR Drop?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> <strong>Signal Routing Congestion.</strong> Every micron of metal used for power is stolen from the available routing tracks for data signals. Over-designing the power grid makes the chip unroutable, causing massive DRC shorts later.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q32</span> What are Tap Cells (Well Taps) and how are they placed?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Tap cells tie the N-well to $V_{DD}$ and the P-substrate to GND to prevent Latch-up. They are placed in a strict checkerboard or column pattern across the core at exactly the maximum distance allowed by the foundry's DRC rule (e.g., every $20 \mu m$).</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q33</span> Why do we use Decap (Decoupling Capacitor) cells, and where are they placed?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Decaps provide localized charge reservoirs to fix <strong>Dynamic IR Drop</strong> (Voltage Droop caused by massive instantaneous $di/dt$ switching). They are placed closely around highly active logic like the Clock Tree buffers or large Macros.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q34</span> What is a Power Switch (MTCMOS)?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> In Power-Gated designs, header (PMOS) or footer (NMOS) sleep transistors act as switches that physically disconnect a logic block from the global power rail to eliminate leakage. They are arranged in a ring or grid inside the power-gated domain.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q35</span> What is Inrush Current, and how do Power Switches manage it?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> When a power-gated block wakes up from sleep, the sudden rush of current to charge its massive internal capacitance causes a catastrophic IR drop spike across the rest of the chip. Power switches use "Daisy Chaining" (turning on slightly staggered in time) to slowly ramp up the power, controlling the inrush.</p>
+            </div>
+        </div>
+
+
+        <!-- ================= SECTION 4: PLACEMENT & CONGESTION ================= -->
+        <h3 class="text-primary border-bottom pb-2 my-4"><i class="fa-solid fa-layer-group me-2"></i>4. Placement & Congestion Strategies</h3>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q36</span> What happens during the Placement phase?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> The EDA tool determines the exact physical location (X,Y coordinates) of millions of standard cells within the core area to minimize wire length, reduce congestion, and meet timing requirements. <strong>No physical signal wires are actually routed yet.</strong></p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q37</span> What is Global Placement vs Detailed Placement?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> 
+                <br>&bull; <strong>Global Placement:</strong> Assigns rough regions to cells to optimize total wire length and timing. Cells are allowed to overlap and violate rules.
+                <br>&bull; <strong>Detailed Placement:</strong> Legalizes the layout. It snaps cells into the standard rows, eliminates all overlaps, and ensures alignment with the power rails without ruining the global timing.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q38</span> If wires aren't routed during Placement, how does the tool know if a placement meets timing?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> The tool performs <strong>Trial Routing (Virtual Routing)</strong>. It rapidly estimates the shortest rectilinear path (Steiner tree/Manhattan distance) between cells to calculate capacitance and resistance, feeding those estimates into the internal STA engine.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q39</span> What is Timing-Driven Placement?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> The placer actively monitors the critical paths identified by the STA engine. It places cells belonging to critical paths physically closer together to reduce wire RC delay, while allowing non-critical cells to drift further apart.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q40</span> What is Congestion-Driven Placement?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> If the tool places too many highly-connected cells in one area, it creates a "Congestion Hotspot". There will not be enough metal tracks available to route them all later. Congestion-driven placement intentionally spreads these cells out, even if it hurts timing slightly, to guarantee routability.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q41</span> How is Routing Congestion calculated?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> The core is divided into grid boxes (Gcells). 
+                <br><code>Congestion = Routing Demand / Routing Capacity</code>.
+                <br>If a Gcell has 10 metal tracks available (Capacity), but the placement requires 12 wires to pass through it (Demand), the congestion is $>100\%$, and the router will fail.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q42</span> How do you fix a Congestion Hotspot during Placement?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>1. <strong>Cell Padding:</strong> Artificially inflate the size of complex cells (like multi-pin MUXes) so the placer cannot pack them too closely together.
+                <br>2. <strong>Partial Blockages:</strong> Apply a 40% placement blockage over the hotspot to force the tool to spread cells outward.
+                <br>3. <strong>Macro Spacing:</strong> Move adjacent macros further apart to widen the routing channel.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q43</span> What is High Fanout Net Synthesis (HFNS)?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A net driving thousands of cells (like a Reset or Scan-Enable signal) has massive capacitance. The driving gate cannot handle it, causing a massive delay and transition violation. HFNS builds a <strong>buffer tree</strong> during placement to distribute the load across multiple strong buffers.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q44</span> Why is Scan Chain Reordering done during Placement?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Synthesis stitches scan-flip-flops together alphabetically based on RTL names, resulting in scan wires crisscrossing the entire chip (terrible congestion). During placement, once the physical locations of the FFs are known, the tool disconnects and re-stitches the scan chain based on physical proximity, drastically reducing wire length.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q45</span> What are Spare Cells?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Extra, unconnected logic gates (AND, OR, MUX, FFs) sprinkled evenly across the chip during placement. If a functional bug is discovered <em>after</em> the chip is manufactured, engineers can re-route the metal layers (a Metal ECO) to connect these spare cells to fix the logic, saving millions of dollars by not having to re-fabricate the base silicon layers.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q46</span> Are Hold violations fixed during Placement?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> <strong>Generally, NO.</strong> Hold fixing involves adding delay buffers. Because the Clock Tree (CTS) has not been built yet, the clock skew is unknown. Fixing hold now would be purely guessing. Setup is heavily prioritized during placement; hold is fixed post-CTS or post-route.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q47</span> <span class="tricky-badge">Tricky</span> Can you achieve 100% Core Utilization?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Practically, <strong>never</strong>. Above ~80% utilization, routing congestion becomes severe. The tool needs the remaining 20% empty space to insert clock buffers, hold-fixing buffers, routing vias, and to avoid DRC shorts. Typical placement target utilization is 70% to 75%.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q48</span> What is a Tie-Cell optimization during placement?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> To prevent placing thousands of individual Tie-High/Tie-Low cells for every unused input, the placer identifies physical clusters of unused inputs and routes them to a single shared Tie-cell, saving area and power.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q49</span> Why does moving a cell to fix Setup Time sometimes create a new Setup violation?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Moving Cell B closer to Cell A reduces the wire delay for the A $\rightarrow$ B path, helping its setup time. However, it pulls Cell B further away from Cell C. Now the B $\rightarrow$ C path wire length increases, potentially causing a new setup violation. Optimization is a delicate mathematical balancing act.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q50</span> What are Filler Cells, and when are they inserted?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Filler cells are completely empty dummy cells (containing no transistors, just continuous N-well and power rail polygons). They are inserted at the very end of the flow to fill all remaining gaps between standard cells. This ensures continuity of the $V_{DD}$/GND rails and satisfies the foundry's minimum active area density DRC rules.</p>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="bg-dark text-center text-white py-4 mt-5 border-top border-secondary">
+        <p class="mb-0">© 2026 Complete VLSI Interview Handbook. Crafted for silicon engineers.</p>
+    </footer>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
