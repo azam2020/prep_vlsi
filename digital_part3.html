@@ -3,31 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chapter 1 (Part 3): Flip-Flops & Counters - VLSI Handbook</title>
+    <title>Chapter 1 (Part 3): Digital Q&A (50 Questions) - VLSI Handbook</title>
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
-    
+
+    <!-- MathJax Configuration -->
     <script>
       MathJax = {
         tex: {
-          inlineMath: [['\\(', '\\)']],
-          displayMath: [['\\[', '\\]']]
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          displayMath: [['$$', '$$'], ['\\[', '\\]']]
         }
       };
     </script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
     <style>
-        .topic-section { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 40px; }
-        .badge-tag { font-size: 0.85rem; padding: 5px 10px; margin-right: 10px; border-radius: 4px; font-weight: 600; }
-        .def { background: #e3f2fd; color: #0d47a1; }
-        .simple { background: #e8f5e9; color: #1b5e20; }
-        .tech { background: #f3e5f5; color: #4a148c; }
-        .interview-block { background-color: #fff8e1; border-left: 5px solid var(--accent-color); padding: 20px; border-radius: 4px; margin: 20px 0; }
-        .tip-box { background-color: #e0f7fa; border-left: 5px solid #00acc1; padding: 15px; margin-top: 15px; }
-        .mistake-box { background-color: #ffebee; border-left: 5px solid #f44336; padding: 15px; margin-top: 15px; }
-        pre.verilog-code { background: #282c34; color: #abb2bf; padding: 15px; border-radius: 5px; }
+        .qa-card { background: white; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .qa-header { background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 15px 20px; font-weight: 700; color: #0f172a; border-top-left-radius: 8px; border-top-right-radius: 8px; }
+        .qa-body { padding: 20px; }
+        .q-number { background: #0b3d91; color: white; padding: 3px 10px; border-radius: 4px; font-size: 0.85rem; margin-right: 10px; }
+        .tricky-badge { background: #dc2626; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; float: right; }
+        .concept-box { background-color: #f0fdf4; border-left: 4px solid #16a34a; padding: 12px 15px; margin-top: 15px; border-radius: 0 4px 4px 0; font-size: 0.95rem; }
+        .trap-box { background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 12px 15px; margin-top: 15px; border-radius: 0 4px 4px 0; font-size: 0.95rem; }
+        .equation-box { background: #f8f9fa; padding: 15px; border-radius: 4px; border: 1px solid #dee2e6; text-align: center; font-size: 1.1rem; margin: 15px 0; overflow-x: auto; }
+        .svg-container { background: white; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; text-align: center; margin: 20px 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
     </style>
 </head>
 <body class="bg-light">
@@ -41,175 +43,520 @@
                     <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
                     <li class="nav-item"><a class="nav-link" href="digital_part1.html">Part 1</a></li>
                     <li class="nav-item"><a class="nav-link" href="digital_part2.html">Part 2</a></li>
-                    <li class="nav-item"><a class="nav-link active" href="#">Part 3</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="#">Digital Q&A (Part 3)</a></li>
                 </ul>
             </div>
         </div>
     </nav>
 
-    <header class="bg-dark text-white py-4 mb-4">
+    <header class="bg-dark text-white py-4 mb-4 shadow">
         <div class="container">
-            <h2>Chapter 1: Digital Electronics (Part 3/4)</h2>
-            <p class="mb-0">Flip-Flops, Counters, and Shift Registers</p>
+            <h2>Chapter 1: Digital Electronics — Part 3 (Q101 to Q150)</h2>
+            <p class="mb-0 text-info">Sequential Logic: Latches, Flip-Flops, Shift Registers, and Counters</p>
         </div>
     </header>
 
-    <main class="container">
-        
-        <!-- 6. FLIP-FLOPS -->
-        <section class="topic-section">
-            <h3 class="text-primary border-bottom pb-2">6. Flip-Flops & Memory Elements</h3>
-            
-            <p><span class="badge-tag def">Definition</span> Edge-triggered memory elements that store one bit of data. The state only changes at the rising or falling edge of a clock signal.</p>
-            <p><span class="badge-tag simple">Simple Explanation</span> If a latch is a door that stays open as long as you hold the handle, a flip-flop is a revolving door that only lets one person through at the exact moment a bell rings (the clock edge).</p>
-            <p><span class="badge-tag tech">Technical Explanation</span> 99% of VLSI design relies on the **D-type Flip-Flop (D-FF)**. A standard positive-edge D-FF is constructed using two latches in series (Master-Slave configuration) with inverted clocks. The Master catches the data when the clock is low, and passes it to the Slave to output when the clock goes high, preventing transparency (race conditions) from input to output.</p>
+    <main class="container my-4">
 
-            <div class="row my-4 align-items-center">
-                <div class="col-md-6 text-center">
-                    <h5>Master-Slave D Flip-Flop Concept</h5>
-                    <svg width="300" height="150" viewBox="0 0 300 150">
-                        <!-- Master Latch -->
-                        <rect x="50" y="30" width="80" height="90" fill="#e3f2fd" stroke="#0d47a1" stroke-width="2"/>
-                        <text x="65" y="50" font-weight="bold">Master</text>
-                        <text x="65" y="70" font-size="12">Latch</text>
-                        <!-- Slave Latch -->
-                        <rect x="170" y="30" width="80" height="90" fill="#e8f5e9" stroke="#1b5e20" stroke-width="2"/>
-                        <text x="190" y="50" font-weight="bold">Slave</text>
-                        <text x="190" y="70" font-size="12">Latch</text>
-                        
-                        <!-- Connections -->
-                        <line x1="10" y1="75" x2="50" y2="75" stroke="black" stroke-width="2"/>
-                        <text x="20" y="70" font-weight="bold">D</text>
-                        
-                        <line x1="130" y1="75" x2="170" y2="75" stroke="black" stroke-width="2"/>
-                        <text x="140" y="70">Qm</text>
-                        
-                        <line x1="250" y1="75" x2="290" y2="75" stroke="black" stroke-width="2"/>
-                        <text x="265" y="70" font-weight="bold">Q</text>
-                        
-                        <!-- Clock -->
-                        <line x1="150" y1="140" x2="150" y2="100" stroke="black" stroke-width="2"/>
-                        <line x1="70" y1="120" x2="150" y2="120" stroke="black" stroke-width="2"/>
-                        <line x1="70" y1="120" x2="70" y2="100" stroke="black" stroke-width="2"/>
-                        <line x1="210" y1="120" x2="150" y2="120" stroke="black" stroke-width="2"/>
-                        <line x1="210" y1="120" x2="210" y2="100" stroke="black" stroke-width="2"/>
-                        <circle cx="70" cy="115" r="4" fill="white" stroke="black"/> <!-- Inverter for Master -->
-                        <text x="135" y="155" font-weight="bold">CLK</text>
-                    </svg>
-                    <p class="small text-muted mt-2">Master is transparent on CLK=0. Slave is transparent on CLK=1.</p>
-                </div>
-                <div class="col-md-6">
-                    <h5>Verilog: D-FF with Async Active-Low Reset</h5>
-                    <pre class="verilog-code text-start"><code>module dff (
-    input clk,
-    input rst_n, // Active-low reset
-    input d,
-    output reg q
-);
-    // Sensitivity list dictates edge-triggering
-    always @(posedge clk or negedge rst_n) begin
-        if (!rst_n)
-            q <= 1'b0;  // Non-blocking assignment!
-        else
-            q <= d;
-    end
-endmodule</code></pre>
-                </div>
+        <!-- ================= SECTION 8: LATCHES & FLIP-FLOPS ================= -->
+        <h3 class="text-primary border-bottom pb-2 mb-4"><i class="fa-solid fa-memory me-2"></i>8. Latches & Flip-Flops</h3>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q101</span> What is the fundamental difference between Combinational and Sequential logic?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Combinational logic output depends <strong>only</strong> on the present inputs (has no memory). Sequential logic output depends on the present inputs <strong>AND</strong> the past sequence of inputs (has memory/feedback).</p>
             </div>
+        </div>
 
-            <div class="interview-block shadow-sm">
-                <h5 class="text-danger fw-bold"><i class="fa-solid fa-microphone me-2"></i>The Interview Scenario</h5>
-                <p><strong>Interviewer:</strong> "How do you convert a D Flip-Flop into a T (Toggle) Flip-Flop using only basic gates?"</p>
-                <p><strong>Your Satisfying Answer:</strong> "A T Flip-Flop toggles its output when T=1 and holds its output when T=0. The characteristic equation of a T-FF is \( Q_{next} = T \oplus Q \). Since a D Flip-Flop just passes its input to the output (\( Q_{next} = D \)), I simply need to make \( D = T \oplus Q \). So, I would take the Q output of the D-FF, feed it into a 2-input XOR gate along with the T signal, and connect the output of that XOR gate into the D input pin."</p>
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q102</span> What is the difference between a Latch and a Flip-Flop?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>&bull; <strong>Latch:</strong> Level-sensitive. It is "transparent" and passes data continuously as long as the enable/clock signal is asserted (High or Low).
+                <br>&bull; <strong>Flip-Flop:</strong> Edge-triggered. It only captures and passes data at the exact instantaneous moment the clock transitions (Rising Edge or Falling Edge).</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q103</span> What is an SR Latch? Write its Truth Table.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A Set-Reset Latch is the most basic memory element, built using two cross-coupled NOR gates or NAND gates.
+                <br>&bull; $S=0, R=0$: Hold State ($Q_{next} = Q_{prev}$)
+                <br>&bull; $S=1, R=0$: Set State ($Q_{next} = 1$)
+                <br>&bull; $S=0, R=1$: Reset State ($Q_{next} = 0$)
+                <br>&bull; $S=1, R=1$: <strong>Invalid / Race Condition</strong></p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q104</span> Why is $S=1, R=1$ invalid in a NOR-based SR Latch?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> If both Set and Reset are 1, both NOR gates are forced to output 0. This violates the fundamental rule that outputs $Q$ and $\bar{Q}$ must be logical complements. Furthermore, if both inputs transition back to 0 simultaneously, the latch enters a metastable race condition and its final state becomes unpredictable.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q105</span> How does a D-Latch solve the SR Latch's invalid state?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A D-Latch ties the $S$ and $R$ inputs together through an inverter ($S = D$, $R = D'$). This guarantees that $S$ and $R$ can never be 1 at the same time, completely eliminating the invalid $1,1$ state. The output simply follows $D$ when enabled.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q106</span> How do you build a positive edge-triggered D Flip-Flop using Latches?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Using a <strong>Master-Slave configuration</strong>. You cascade two D-Latches in series. 
+                <br>&bull; The Master latch is enabled when $CLK = 0$.
+                <br>&bull; The Slave latch is enabled when $CLK = 1$.</p>
+            </div>
+        </div>
+
+        <!-- SVG DIAGRAM: MASTER-SLAVE DFF -->
+        <div class="svg-container">
+            <h5 class="text-dark mb-3">Master-Slave D-Flip-Flop Architecture</h5>
+            <svg width="450" height="200" viewBox="0 0 450 200">
+                <!-- Master Latch -->
+                <rect x="100" y="50" width="80" height="100" fill="#e3f2fd" stroke="#0d47a1" stroke-width="2"/>
+                <text x="115" y="80" font-weight="bold">Master</text>
+                <text x="120" y="100" font-size="12">Latch</text>
+                <text x="125" y="130" font-size="12">(Level=0)</text>
                 
-                <hr>
-                <p class="mb-1"><strong>Follow-up Q:</strong> "What if you just want it to act as a divide-by-2 frequency divider?"</p>
-                <p class="mb-1 text-muted"><strong>Answer:</strong> "If I just need a divide-by-2 circuit, that means it should toggle on every single clock cycle (T=1 always). If T=1, \( D = 1 \oplus Q = Q' \). So, I don't even need an XOR gate. I just connect the \( \bar{Q} \) (Q-bar) output directly back into the D input."</p>
+                <!-- Slave Latch -->
+                <rect x="250" y="50" width="80" height="100" fill="#e8f5e9" stroke="#1b5e20" stroke-width="2"/>
+                <text x="270" y="80" font-weight="bold">Slave</text>
+                <text x="275" y="100" font-size="12">Latch</text>
+                <text x="275" y="130" font-size="12">(Level=1)</text>
+
+                <!-- Data Path -->
+                <line x1="40" y1="90" x2="100" y2="90" stroke="black" stroke-width="2"/>
+                <text x="50" y="85" font-weight="bold">D</text>
+
+                <line x1="180" y1="90" x2="250" y2="90" stroke="black" stroke-width="2"/>
+                <text x="205" y="85" font-weight="bold">Qm</text>
+
+                <line x1="330" y1="90" x2="390" y2="90" stroke="black" stroke-width="2"/>
+                <text x="370" y="85" font-weight="bold">Q</text>
+
+                <!-- Clock Path -->
+                <line x1="220" y1="170" x2="220" y2="150" stroke="red" stroke-width="2"/>
+                <line x1="140" y1="170" x2="290" y2="170" stroke="red" stroke-width="2"/>
+                <line x1="140" y1="170" x2="140" y2="150" stroke="red" stroke-width="2"/>
+                <line x1="290" y1="170" x2="290" y2="150" stroke="red" stroke-width="2"/>
+                <text x="210" y="190" fill="red" font-weight="bold">CLK</text>
+
+                <!-- Inverter on Master -->
+                <circle cx="140" cy="145" r="5" fill="white" stroke="red" stroke-width="2"/>
+            </svg>
+            <p class="mt-3 small text-muted">The Master catches data when CLK=0. The Slave passes it to Q when CLK transitions to 1.</p>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q107</span> <span class="tricky-badge">Tricky</span> Why does the Master-Slave configuration successfully create edge-triggering?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Because the two latches are enabled on opposite clock phases, they are <strong>never transparent at the same time</strong>. 
+                <br>&bull; When $CLK=0$, Master sees $D$, but Slave is locked.
+                <br>&bull; When $CLK \uparrow 1$, Master instantly locks (ignoring any new $D$ changes), and Slave opens to pass the locked Master data to $Q$. This perfectly mimics instantaneous edge-triggering.</p>
             </div>
+        </div>
 
-            <div class="mistake-box">
-                <strong><i class="fa-solid fa-triangle-exclamation"></i> Common Mistake:</strong> Using blocking assignments (`=`) instead of non-blocking (`<=`) inside a sequential `always` block in Verilog. This can simulate correctly sometimes, but will infer incorrect hardware (like unintended latches or wrong shift register cascades) during synthesis.
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q108</span> What is a JK Flip-Flop, and how does it improve upon the SR Flip-Flop?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A JK Flip-Flop resolves the invalid state of the SR Flip-Flop. 
+                <br>When $J=1, K=1$, instead of entering a race condition, the flip-flop <strong>toggles</strong> its state ($Q_{next} = Q_{prev}'$). This makes it highly versatile for building counters.</p>
             </div>
-        </section>
+        </div>
 
-        <!-- 7. COUNTERS -->
-        <section class="topic-section">
-            <h3 class="text-primary border-bottom pb-2">7. Counters</h3>
-            
-            <p><span class="badge-tag tech">Technical Explanation</span> Counters are state machines that cycle through a specific sequence of states. They are broadly classified into two categories:</p>
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q109</span> What is the "Race Around Condition" in a JK Latch?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> If a Level-Sensitive JK Latch has $J=1, K=1$, it will toggle. However, if the clock pulse width (time the clock is High) is longer than the propagation delay of the latch, the latch will toggle, feed its new output back to its inputs, and toggle <em>again</em>, oscillating wildly until the clock falls. 
+                <br><strong>Fix:</strong> Use an Edge-Triggered Master-Slave JK Flip-Flop.</p>
+            </div>
+        </div>
 
-            <table class="table table-bordered mt-3">
-                <thead class="table-dark">
-                    <tr><th>Feature</th><th>Asynchronous (Ripple) Counter</th><th>Synchronous Counter</th></tr>
-                </thead>
-                <tbody>
-                    <tr><td><strong>Clocking</strong></td><td>CLK only feeds the first FF. The output of one FF acts as the CLK for the next.</td><td>Same CLK feeds all FFs simultaneously.</td></tr>
-                    <tr><td><strong>Speed/Delay</strong></td><td>Slower. Delays accumulate (Propagation delay = \( N \times t_{pd} \)).</td><td>Faster. Delay is just the delay of one FF + logic.</td></tr>
-                    <tr><td><strong>Glitching</strong></td><td>High risk of decoding glitches due to intermediate states.</td><td>Clean state transitions, safe for decoding.</td></tr>
-                    <tr><td><strong>VLSI Usage</strong></td><td>Rarely used (except for specific low-power clock dividers).</td><td><strong>Industry Standard</strong> for FSMs and timers.</td></tr>
-                </tbody>
-            </table>
-
-            <h5 class="mt-4 text-primary">Ring vs. Johnson Counters</h5>
-            <p>These are built using shift registers and are very common in interviews.</p>
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="card mb-3 shadow-sm border-0 bg-light">
-                        <div class="card-body">
-                            <h5 class="card-title text-success">Ring Counter</h5>
-                            <p class="card-text">Connect the Q of the last FF back to the D of the first FF. Requires a preset state (e.g., 1000).</p>
-                            <ul>
-                                <li>States used: <strong>N</strong> (for N flip-flops)</li>
-                                <li>Sequence (4-bit): 1000 &rarr; 0100 &rarr; 0010 &rarr; 0001</li>
-                                <li><strong>Pro:</strong> Decoding requires NO logic gates.</li>
-                            </ul>
-                        </div>
-                    </div>
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q110</span> Write the characteristic equations for D, T, and JK Flip-Flops.</div>
+            <div class="qa-body">
+                <div class="equation-box">
+                    <strong>D-FF:</strong> $Q_{next} = D$<br>
+                    <strong>T-FF:</strong> $Q_{next} = T \oplus Q$<br>
+                    <strong>JK-FF:</strong> $Q_{next} = J Q' + K' Q$
                 </div>
-                <div class="col-md-6">
-                    <div class="card mb-3 shadow-sm border-0 bg-light">
-                        <div class="card-body">
-                            <h5 class="card-title text-success">Johnson (Twisted Ring) Counter</h5>
-                            <p class="card-text">Connect the \( \bar{Q} \) of the last FF back to the D of the first FF. Initializes at 0000.</p>
-                            <ul>
-                                <li>States used: <strong>2N</strong> (for N flip-flops)</li>
-                                <li>Sequence (4-bit): 0000 &rarr; 1000 &rarr; 1100 &rarr; 1110 &rarr; 1111 &rarr; 0111...</li>
-                                <li><strong>Pro:</strong> More states per FF. Decoding needs only 2-input AND gates.</li>
-                            </ul>
-                        </div>
-                    </div>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q111</span> <span class="tricky-badge">Whiteboard</span> How do you convert a D Flip-Flop into a T Flip-Flop?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A T-FF toggles when $T=1$. Characteristic eq: $Q_{next} = T \oplus Q$.
+                <br>Since a D-FF passes its input directly ($Q_{next} = D$), we set $D = T \oplus Q$.
+                <br><strong>Implementation:</strong> Connect an XOR gate to the D input. The inputs to the XOR gate are the $T$ signal and the $Q$ output of the flip-flop.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q112</span> <span class="tricky-badge">Whiteboard</span> How do you convert a JK Flip-Flop into a D Flip-Flop?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A D-FF must set when $D=1$ and reset when $D=0$. 
+                <br>Connect $D$ directly to the $J$ pin. Connect an inverted $D$ ($D'$) to the $K$ pin.
+                <br>If $D=1 \rightarrow J=1, K=0 \rightarrow Q=1$.
+                <br>If $D=0 \rightarrow J=0, K=1 \rightarrow Q=0$.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q113</span> What is the Excitation Table of a Flip-Flop?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A Truth Table tells you the next state based on current inputs. An <strong>Excitation Table</strong> works backward: it tells you what inputs you need to apply to force a specific state transition (from $Q_{prev}$ to $Q_{next}$). It is the primary tool for designing state machines and counters.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q114</span> Write the Excitation Table for a T Flip-Flop.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>&bull; $0 \rightarrow 0$: Require $T = 0$
+                <br>&bull; $0 \rightarrow 1$: Require $T = 1$ (Toggle)
+                <br>&bull; $1 \rightarrow 0$: Require $T = 1$ (Toggle)
+                <br>&bull; $1 \rightarrow 1$: Require $T = 0$</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q115</span> Write the Excitation Table for a JK Flip-Flop.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> (X = Don't Care)
+                <br>&bull; $0 \rightarrow 0$: $J = 0, K = X$
+                <br>&bull; $0 \rightarrow 1$: $J = 1, K = X$
+                <br>&bull; $1 \rightarrow 0$: $J = X, K = 1$
+                <br>&bull; $1 \rightarrow 1$: $J = X, K = 0$</p>
+            </div>
+        </div>
+
+
+        <!-- ================= SECTION 9: SHIFT REGISTERS ================= -->
+        <h3 class="text-primary border-bottom pb-2 my-4"><i class="fa-solid fa-arrows-turn-right me-2"></i>9. Shift Registers</h3>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q116</span> What is a Shift Register?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A cascade of Flip-Flops sharing the same clock, where the output $Q$ of one flip-flop is connected to the input $D$ of the next. Upon every clock cycle, the stored data shifts one position left or right.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q117</span> Define the 4 main types of Shift Registers.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>1. <strong>SISO:</strong> Serial In, Serial Out (Used for data delay lines).
+                <br>2. <strong>SIPO:</strong> Serial In, Parallel Out (Used to convert UART serial stream into a byte).
+                <br>3. <strong>PISO:</strong> Parallel In, Serial Out (Used to transmit a CPU byte over a single wire).
+                <br>4. <strong>PIPO:</strong> Parallel In, Parallel Out (Basically a standard memory register).</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q118</span> How does a PISO (Parallel-In Serial-Out) register work?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> It uses 2:1 MUXes at the D-input of every flip-flop, controlled by a <code>Shift/Load</code> signal.
+                <br>&bull; When <strong>Load=1</strong>: The MUX connects external parallel data to the D-pins. All FFs load the data simultaneously in 1 clock cycle.
+                <br>&bull; When <strong>Shift=0</strong>: The MUX connects the $Q$ of the previous FF to the $D$ of the next FF, shifting the data out serially.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q119</span> What is a Universal Shift Register?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A bidirectional shift register capable of shifting left, shifting right, parallel loading, and holding state. It typically uses 4:1 MUXes at the input of every flip-flop to select between the 4 operational modes.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q120</span> How can a Shift Register be used for arithmetic operations?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Shifting a binary number left by 1 bit multiplies it by 2. Shifting right by 1 bit divides it by 2. This is implemented in CPU ALUs as a "Barrel Shifter," which can execute massive multiplications much faster than an adder array.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q121</span> What is a Ring Counter?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A shift register where the output of the <em>last</em> flip-flop is fed directly back into the input of the <em>first</em> flip-flop. It recirculates a single '1' bit (e.g., 1000 $\rightarrow$ 0100 $\rightarrow$ 0010 $\rightarrow$ 0001 $\rightarrow$ 1000). It requires a Preset to initialize the '1'.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q122</span> What is the modulus of an N-bit Ring Counter, and what is its primary advantage?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> 
+                <br>&bull; <strong>Modulus:</strong> $N$. An N-bit ring counter yields $N$ unique states.
+                <br>&bull; <strong>Advantage:</strong> The states are inherently "One-Hot" encoded. Decoding a specific state requires <strong>ZERO</strong> logic gates; you just tap the $Q$ output of the specific flip-flop.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q123</span> What is a Johnson Counter (Twisted Ring Counter)?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A shift register where the <strong>inverted output ($\bar{Q}$)</strong> of the last flip-flop is fed back to the input of the first flip-flop. It initializes at 0000.</p>
+            </div>
+        </div>
+
+        <!-- SVG DIAGRAM: JOHNSON COUNTER -->
+        <div class="svg-container">
+            <h5 class="text-dark mb-3">4-bit Johnson Counter Architecture</h5>
+            <svg width="500" height="150" viewBox="0 0 500 150">
+                <!-- 4 FFs -->
+                <rect x="50" y="40" width="50" height="60" fill="#e3f2fd" stroke="#0d47a1" stroke-width="2"/>
+                <text x="60" y="60">FF0</text>
+                <text x="55" y="80">D  Q</text>
+                
+                <rect x="150" y="40" width="50" height="60" fill="#e3f2fd" stroke="#0d47a1" stroke-width="2"/>
+                <text x="160" y="60">FF1</text>
+                <text x="155" y="80">D  Q</text>
+                
+                <rect x="250" y="40" width="50" height="60" fill="#e3f2fd" stroke="#0d47a1" stroke-width="2"/>
+                <text x="260" y="60">FF2</text>
+                <text x="255" y="80">D  Q</text>
+                
+                <rect x="350" y="40" width="50" height="60" fill="#e3f2fd" stroke="#0d47a1" stroke-width="2"/>
+                <text x="360" y="60">FF3</text>
+                <text x="355" y="80">D  Q</text>
+                <text x="385" y="95" fill="red">Q'</text>
+
+                <!-- Connections -->
+                <line x1="100" y1="75" x2="150" y2="75" stroke="black" stroke-width="2"/>
+                <line x1="200" y1="75" x2="250" y2="75" stroke="black" stroke-width="2"/>
+                <line x1="300" y1="75" x2="350" y2="75" stroke="black" stroke-width="2"/>
+                
+                <!-- Feedback -->
+                <line x1="400" y1="90" x2="430" y2="90" stroke="red" stroke-width="2"/>
+                <line x1="430" y1="90" x2="430" y2="130" stroke="red" stroke-width="2"/>
+                <line x1="430" y1="130" x2="30" y2="130" stroke="red" stroke-width="2"/>
+                <line x1="30" y1="130" x2="30" y2="75" stroke="red" stroke-width="2"/>
+                <line x1="30" y1="75" x2="50" y2="75" stroke="red" stroke-width="2"/>
+            </svg>
+            <p class="mt-2 small text-muted">Sequence: 0000 &rarr; 1000 &rarr; 1100 &rarr; 1110 &rarr; 1111 &rarr; 0111 &rarr; 0011 &rarr; 0001 &rarr; 0000</p>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q124</span> What is the modulus of an N-bit Johnson Counter?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> <strong>$2N$</strong>. A 4-bit Johnson counter yields exactly 8 unique states. It is twice as efficient in state usage as a Ring Counter, while still maintaining highly simple decoding logic.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q125</span> <span class="tricky-badge">Tricky</span> How many inputs must the decoding AND gates have to decode a Johnson Counter state?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Exactly <strong>Two</strong> inputs. Regardless of whether it's a 4-bit, 10-bit, or 100-bit Johnson counter, every unique state can be identified by checking exactly two adjacent flip-flops using a 2-input AND gate. This is a massive hardware savings over decoding a standard binary counter.</p>
+            </div>
+        </div>
+
+
+        <!-- ================= SECTION 10: COUNTERS ================= -->
+        <h3 class="text-primary border-bottom pb-2 my-4"><i class="fa-solid fa-stopwatch-20 me-2"></i>10. Counters (Asynchronous & Synchronous)</h3>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q126</span> What is the difference between an Asynchronous (Ripple) Counter and a Synchronous Counter?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>&bull; <strong>Ripple Counter:</strong> Only the first FF receives the external clock. The output ($Q$) of the first FF acts as the clock for the second FF, and so on.
+                <br>&bull; <strong>Synchronous Counter:</strong> All FFs receive the exact same external clock simultaneously. Next states are calculated via combinational logic fed into the $D$ or $T$ pins.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q127</span> Why are Ripple Counters strictly avoided in modern VLSI design?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> <strong>Glitches and Skew.</strong> Because the clock ripples through the FFs, the MSB updates much later than the LSB. During this rippling time, the counter momentarily outputs "garbage" intermediate states (e.g., transitioning 011 $\rightarrow$ 100 might briefly output 010, 000). If this output is decoded, it causes fatal logic glitches.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q128</span> What is the propagation delay of an N-bit Ripple Counter?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> $Delay = N \times t_{pd\_ff}$. The total delay is the sum of the clock-to-Q delays of all $N$ flip-flops in the chain.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q129</span> What is the propagation delay of an N-bit Synchronous Counter?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> $Delay = t_{pd\_ff} + t_{comb}$. Because all FFs are clocked simultaneously, the delay does not scale with $N$. It is simply the delay of one flip-flop plus the delay of the largest combinational AND-gate tree used to generate the next-state logic.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q130</span> What is a Modulo-N (Mod-N) Counter?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A counter that has exactly $N$ unique states. It counts from $0$ to $N-1$, and on the next clock cycle, it resets back to $0$. A standard 3-bit binary counter is naturally a Mod-8 counter.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q131</span> <span class="tricky-badge">Numerical</span> How many Flip-Flops are required to build a Mod-100 Counter?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> The formula is $2^K \ge N$. 
+                <br>For $N = 100$: $2^6 = 64$ (Not enough). $2^7 = 128$ (Enough). 
+                <br><strong>7 Flip-Flops</strong> are required.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q132</span> What is a Decade (BCD) Counter?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A Mod-10 counter. It counts from $0000$ (0) to $1001$ (9). Upon reaching 9, the next clock cycle forces the counter to reset to 0000 instead of continuing to 1010 (10).</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q133</span> <span class="tricky-badge">Whiteboard</span> How do you force a 3-bit Synchronous Counter to act as a Mod-6 counter (0 to 5) using an asynchronous clear?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> The counter must reset when it hits State 6 (110). 
+                <br>Connect $Q_2$ (MSB) and $Q_1$ to a NAND gate. Feed the output of the NAND gate to the Active-Low `Clear` pins of all Flip-Flops. The moment the counter hits 110, the NAND outputs 0, instantly wiping the FFs back to 000.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q134</span> How does a Synchronous Up/Down Counter work?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> It uses a control pin `M` (Mode). 
+                <br>&bull; <strong>Up (M=0):</strong> The $T$ inputs of the FFs are driven by the $Q$ outputs of previous stages.
+                <br>&bull; <strong>Down (M=1):</strong> The $T$ inputs of the FFs are driven by the inverted $\bar{Q}$ outputs of previous stages.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q135</span> What is a "Lockout" condition in a counter?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> If a Mod-5 counter (using 3 FFs) accidentally enters an unused state (like 111) due to noise or a power spike, and the next-state logic maps 111 $\rightarrow$ 110 $\rightarrow$ 111, the counter is trapped infinitely in unused states. This is a fatal lockout.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q136</span> How do you design a "Self-Starting" counter?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> You explicitly design the combinational next-state logic so that <strong>all unused states map to a valid state</strong> (typically 000). If the counter glitches into 111, the next clock edge mathematically forces it back into the primary 0-to-N loop.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q137</span> What is an LFSR (Linear Feedback Shift Register)?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A shift register where the input bit is driven by the XOR (linear function) of specific tap outputs. It cycles through a pseudo-random sequence of states. It is heavily used in cryptography, CRC generation, and PRPGs for Logic BIST.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q138</span> What is a Maximal-Length LFSR?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> An N-bit LFSR that cycles through exactly $2^N - 1$ unique states before repeating. (It misses the all-zero state, because $0 \oplus 0 = 0$, which would lock the LFSR forever).</p>
+            </div>
+        </div>
+
+        <!-- ================= SECTION 11: CLOCK DIVIDERS & TRICKY PUZZLES ================= -->
+        <h3 class="text-primary border-bottom pb-2 my-4"><i class="fa-solid fa-puzzle-piece me-2"></i>11. Clock Dividers & Tricky Sequential Puzzles</h3>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q139</span> <span class="tricky-badge">Whiteboard</span> How do you create a Divide-by-2 Clock Divider?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Use a single D-Flip-Flop. Connect the inverted output $\bar{Q}$ back into the $D$ input. The FF will toggle on every rising edge of the source clock, producing an output clock with exactly half the frequency and a perfect 50% duty cycle.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q140</span> <span class="tricky-badge">Whiteboard</span> How do you create a Divide-by-4 Clock Divider?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Cascade two Divide-by-2 circuits. Take the $Q$ output of the first D-FF and feed it into the `CLK` pin of the second D-FF. The output of the second FF is $f / 4$.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q141</span> <span class="tricky-badge">Tricky</span> Can you use an asynchronous counter (Ripple counter) as a clock divider?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Technically yes; the $Q$ outputs of a ripple counter are exact powers-of-two clock divisions ($f/2, f/4, f/8$). However, in ASIC design, driving clock pins with logic outputs creates severe clock skew and makes STA analysis a nightmare. It is generally avoided in favor of synchronous clock enables.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q142</span> <span class="tricky-badge">Whiteboard</span> Explain the logic to create a Divide-by-3 Clock Divider with a perfectly 50% Duty Cycle.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A synchronous Mod-3 counter on the rising edge will give a 33% or 66% duty cycle. To achieve 50%, you MUST use the negative edge.
+                <br>1. Create a Mod-3 counter ($Q_0, Q_1$) clocked on the <strong>Rising Edge</strong>.
+                <br>2. Add a third FF ($Q_2$) that samples $Q_1$ on the <strong>Falling Edge</strong>.
+                <br>3. The final divided clock is $Q_1 \text{ OR } Q_2$.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q143</span> How do you design a sequence detector to detect the pattern "101" (overlapping allowed) using a Shift Register?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> You do not need a complex FSM! Feed the serial data into a 3-bit SISO Shift Register. Tap the outputs of the three FFs ($Q_2, Q_1, Q_0$) and feed them into an AND gate tailored to the pattern: `assign matched = Q_2 & ~Q_1 & Q_0;`. It checks the last 3 bits instantly.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q144</span> What is the oscillation frequency of an N-stage Ring Oscillator?</div>
+            <div class="qa-body">
+                <div class="equation-box">
+                    $f = \frac{1}{2 \cdot N \cdot t_{pd}}$
                 </div>
+                <p>Where $N$ is an <strong>ODD</strong> number of inverters, and $t_{pd}$ is the propagation delay of a single inverter.</p>
             </div>
+        </div>
 
-            <div class="interview-block shadow-sm">
-                <h5 class="text-danger fw-bold"><i class="fa-solid fa-microphone me-2"></i>The Interview Scenario</h5>
-                <p><strong>Interviewer:</strong> "Why do we strictly avoid Ripple Counters in modern SoC design?"</p>
-                <p><strong>Your Satisfying Answer:</strong> "Ripple counters cause severe Timing Analysis issues. Because the output of one flip-flop acts as the clock for the next, there is massive clock skew across the bits. If you try to sample the counter's value using the main system clock, you risk sampling during a transition (causing setup/hold violations and metastability). Furthermore, intermediate 'garbage' states appear momentarily as the ripple propagates, which will cause false triggers if those bits are used in combinational logic."</p>
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q145</span> What happens if you build a Ring Oscillator using an EVEN number of inverters?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> It will NOT oscillate. It will act as a bistable memory element (a latch/SRAM cell) and immediately lock into a stable DC state (either 1-0-1-0 or 0-1-0-1).</p>
             </div>
-        </section>
+        </div>
 
-        <!-- 8. SHIFT REGISTERS -->
-        <section class="topic-section">
-            <h3 class="text-primary border-bottom pb-2">8. Shift Registers</h3>
-            
-            <p><span class="badge-tag def">Definition</span> A group of cascaded flip-flops used to store and shift binary data left or right upon every clock cycle.</p>
-            <p><span class="badge-tag simple">Simple Explanation</span> Think of a bucket brigade at a fire. Person A hands the bucket to Person B, Person B hands it to Person C. Data moves one spot over on every tick of the clock.</p>
-
-            <ul class="mb-4">
-                <li><strong>SISO (Serial In, Serial Out):</strong> Used for adding delay to a signal (Delay Lines).</li>
-                <li><strong>SIPO (Serial In, Parallel Out):</strong> Used to convert a serial data stream (like UART/SPI) into parallel data (a byte) for the CPU to read.</li>
-                <li><strong>PISO (Parallel In, Serial Out):</strong> Used to convert CPU parallel bytes into a serial bit stream to transmit over a wire.</li>
-                <li><strong>PIPO (Parallel In, Parallel Out):</strong> Simply acts as a data register (memory).</li>
-            </ul>
-
-            <div class="tip-box">
-                <strong><i class="fa-solid fa-lightbulb"></i> Real Interview Tip:</strong> If an interviewer asks you to "multiply a binary number by 4 without using a multiplier block," the answer is to use a Shift Register. Shifting data left by 1 bit multiplies it by 2. Shifting left by 2 bits multiplies it by 4. Shifting right divides by 2. This is called a <em>barrel shifter</em> in CPU ALUs.
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q146</span> <span class="tricky-badge">Tricky</span> What must the initial state of a 4-bit Ring Counter be to work correctly?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> It MUST be initialized to `1000` (or `0100`, `0010`, `0001`). If you initialize it to `0000`, it will just shift zeros forever and remain locked at `0000`.</p>
             </div>
-            
-        </section>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q147</span> What must the initial state of a Johnson Counter be?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> It initializes safely at `0000`. Because the feedback is inverted, the 0 at the end becomes a 1 at the beginning, filling the register with 1s (`1000`, `1100`, `1110`...) before flushing them out with 0s.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q148</span> Can a Shift Register be used as an analog delay line?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> No, a digital shift register can only delay a digital bit stream by an exact integer number of clock cycles ($Delay = N \times T_{clk}$). Analog delay lines use physical LC networks or transmission lines.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q149</span> <span class="tricky-badge">Numerical</span> A 4-bit ripple counter is built using T-FFs. Each FF has a $t_{pd}$ of 10ns. What is the maximum frequency of the counter?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> In a ripple counter, the clock must wait for the worst-case ripple through ALL flip-flops before the next clock edge arrives. 
+                <br>$T_{min} = 4 \times 10ns = 40ns$. 
+                <br>$F_{max} = 1 / 40ns = \mathbf{25 \text{ MHz}}$.</p>
+            </div>
+        </div>
+
+        <div class="qa-card border-success border-2">
+            <div class="qa-header bg-success text-white"><span class="q-number bg-dark">Q150</span> The Final Test: Why does a Flip-Flop go metastable at the transistor level?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A flip-flop contains two cross-coupled inverters forming a bistable loop. If data transitions at the exact moment the clock samples, the voltage trapped in the loop rests at exactly $V_{DD}/2$. Because both inverters are sitting perfectly at their switching threshold ($V_{in} = V_{out}$), their gain is high but the differential is zero. It hangs in this unstable equilibrium until thermal noise nudges the voltage slightly, allowing the positive feedback to finally snap it to VDD or GND.</p>
+            </div>
+        </div>
 
     </main>
 
+    <footer class="bg-dark text-center text-white py-4 mt-5 border-top border-secondary">
+        <p class="mb-0">© 2026 Complete VLSI Interview Handbook. Crafted for silicon engineers.</p>
+    </footer>
+
+    <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
