@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 6 (Part 1): Memories & CDC Q&A - VLSI Handbook</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+
+    <!-- MathJax Configuration -->
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          displayMath: [['$$', '$$'], ['\\[', '\\]']]
+        }
+      };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        .qa-card { background: white; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .qa-header { background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 15px 20px; font-weight: 700; color: #0f172a; border-top-left-radius: 8px; border-top-right-radius: 8px; }
+        .qa-body { padding: 20px; }
+        .q-number { background: #0b3d91; color: white; padding: 3px 10px; border-radius: 4px; font-size: 0.85rem; margin-right: 10px; }
+        .tricky-badge { background: #dc2626; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; float: right; }
+        .concept-box { background-color: #f0fdf4; border-left: 4px solid #16a34a; padding: 12px 15px; margin-top: 15px; border-radius: 0 4px 4px 0; font-size: 0.95rem; }
+        .trap-box { background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 12px 15px; margin-top: 15px; border-radius: 0 4px 4px 0; font-size: 0.95rem; }
+        .equation-box { background: #f8f9fa; padding: 15px; border-radius: 4px; border: 1px solid #dee2e6; text-align: center; font-size: 1.1rem; margin: 15px 0; overflow-x: auto; }
+        .svg-container { background: white; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; text-align: center; margin: 20px 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        pre.v-code { background: #1e293b; color: #f8fafc; padding: 15px; border-radius: 6px; font-size: 0.9rem; margin: 10px 0; }
+    </style>
+</head>
+<body class="bg-light">
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html"><i class="fa-solid fa-microchip me-2"></i>VLSI Handbook</a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="pd_part2.html">Ch 5 (PD)</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="#">Memories & CDC (Part 1)</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <header class="bg-dark text-white py-4 mb-4 shadow">
+        <div class="container">
+            <h2>Chapter 6: Memories, SoC & CDC — Part 1 (Q1 to Q50)</h2>
+            <p class="mb-0 text-info">SRAM vs DRAM, Clock Domain Crossing (CDC), and Asynchronous FIFOs</p>
+        </div>
+    </header>
+
+    <main class="container my-4">
+
+        <!-- ================= SECTION 1: SRAM & DRAM ================= -->
+        <h3 class="text-primary border-bottom pb-2 mb-4"><i class="fa-solid fa-memory me-2"></i>1. Memory Basics: SRAM & DRAM</h3>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q1</span> What is the fundamental difference between SRAM and DRAM?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> 
+                <br>&bull; <strong>SRAM (Static RAM):</strong> Uses bistable latching circuitry (cross-coupled inverters) to store each bit. Fast, consumes more area (6 transistors/cell), and requires no refresh. Used for CPU Cache.
+                <br>&bull; <strong>DRAM (Dynamic RAM):</strong> Stores bits as charge in a tiny capacitor. Slow, extremely dense (1 transistor + 1 capacitor/cell), and leaks charge over time, requiring continuous periodic refresh cycles. Used for Main System Memory.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q2</span> Describe the architecture of a standard 6T SRAM cell.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> It consists of exactly 6 transistors:
+                <br>1. Two cross-coupled CMOS inverters (4 transistors total: 2 Pull-Up PMOS, 2 Pull-Down NMOS) that hold the logical state regeneratively.
+                <br>2. Two NMOS Access Transistors (Pass Transistors) connected to the Word Line (WL) that control access to the Bit Line (BL) and Bit Line Bar ($\overline{BL}$) for reading and writing.</p>
+            </div>
+        </div>
+
+        <!-- SVG DIAGRAM: 6T SRAM -->
+        <div class="svg-container">
+            <h5 class="text-dark mb-3">6T SRAM Cell Architecture</h5>
+            <svg width="400" height="250" viewBox="0 0 400 250">
+                <!-- VDD and GND -->
+                <line x1="200" y1="20" x2="200" y2="40" stroke="red" stroke-width="2"/>
+                <text x="185" y="15" fill="red" font-weight="bold">VDD</text>
+                <line x1="200" y1="210" x2="200" y2="230" stroke="black" stroke-width="2"/>
+                <text x="185" y="245" font-weight="bold">GND</text>
+                
+                <!-- Cross coupled inverters (simplified boxes for clarity) -->
+                <rect x="150" y="70" width="40" height="110" fill="#e3f2fd" stroke="#0d47a1" stroke-width="2"/>
+                <text x="160" y="130" font-weight="bold">INV1</text>
+                
+                <rect x="210" y="70" width="40" height="110" fill="#e3f2fd" stroke="#0d47a1" stroke-width="2"/>
+                <text x="220" y="130" font-weight="bold">INV2</text>
+                
+                <line x1="190" y1="100" x2="210" y2="150" stroke="black" stroke-width="2"/>
+                <line x1="190" y1="150" x2="210" y2="100" stroke="black" stroke-width="2"/>
+                
+                <!-- Access Transistors -->
+                <circle cx="100" cy="125" r="15" fill="none" stroke="black" stroke-width="2"/>
+                <text x="92" y="130">M5</text>
+                <circle cx="300" cy="125" r="15" fill="none" stroke="black" stroke-width="2"/>
+                <text x="292" y="130">M6</text>
+                
+                <!-- Connections -->
+                <line x1="115" y1="125" x2="150" y2="125" stroke="black" stroke-width="2"/>
+                <line x1="250" y1="125" x2="285" y2="125" stroke="black" stroke-width="2"/>
+                
+                <!-- Word Line -->
+                <line x1="100" y1="110" x2="100" y2="50" stroke="green" stroke-width="2"/>
+                <line x1="300" y1="110" x2="300" y2="50" stroke="green" stroke-width="2"/>
+                <line x1="50" y1="50" x2="350" y2="50" stroke="green" stroke-width="2"/>
+                <text x="20" y="55" fill="green" font-weight="bold">WL</text>
+                
+                <!-- Bit Lines -->
+                <line x1="85" y1="125" x2="50" y2="125" stroke="blue" stroke-width="2"/>
+                <line x1="50" y1="90" x2="50" y2="200" stroke="blue" stroke-width="2"/>
+                <text x="40" y="80" fill="blue" font-weight="bold">BL</text>
+
+                <line x1="315" y1="125" x2="350" y2="125" stroke="blue" stroke-width="2"/>
+                <line x1="350" y1="90" x2="350" y2="200" stroke="blue" stroke-width="2"/>
+                <text x="340" y="80" fill="blue" font-weight="bold">BLB</text>
+            </svg>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q3</span> Explain the Read Operation in a 6T SRAM cell.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>1. <strong>Precharge:</strong> Both Bit Line ($BL$) and Bit Line Bar ($\overline{BL}$) are precharged to $V_{DD}$.
+                <br>2. <strong>Enable:</strong> The Word Line (WL) is driven High, turning ON both NMOS access transistors.
+                <br>3. <strong>Discharge:</strong> Depending on the stored state, one of the cross-coupled inverters will pull one of the bit lines down slightly toward GND.
+                <br>4. <strong>Sense:</strong> A Sense Amplifier detects the tiny voltage differential ($\Delta V$) between $BL$ and $\overline{BL}$ and instantly amplifies it to a full CMOS logic level.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q4</span> Why do we use Sense Amplifiers during an SRAM read instead of just letting the cell discharge the bitline to 0V?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> <strong>Speed.</strong> The Bit Lines are massively long wires shared across thousands of cells, possessing enormous parasitic capacitance. The tiny transistors inside a single SRAM cell are far too weak to discharge that entire capacitance to 0V quickly. The Sense Amp detects a drop of just ~100mV and aggressively drives the output, saving immense time.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q5</span> Explain the Write Operation in a 6T SRAM cell.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>1. The Write Driver forces $BL$ to the desired value (e.g., $V_{DD}$) and $\overline{BL}$ to its complement ($0V$).
+                <br>2. The Word Line (WL) is driven High, turning ON the access transistors.
+                <br>3. The strong Write Drivers overpower the tiny cross-coupled inverters inside the cell, flipping their state to match the bit lines.
+                <br>4. WL is turned off, and the inverters latch the new state.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q6</span> <span class="tricky-badge">Tricky</span> What is the conflict between "Read Stability" and "Write Ability" in SRAM sizing?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> 
+                <br>&bull; <strong>Read Stability:</strong> During a read, the access NMOS must be <em>weaker</em> than the internal pull-down NMOS, so the cell doesn't accidentally flip its own state when connected to the precharged bit lines.
+                <br>&bull; <strong>Write Ability:</strong> During a write, the access NMOS must be <em>stronger</em> than the internal pull-up PMOS, so the external write drivers can successfully overpower the cell and flip it.
+                <br>This physical sizing conflict defines the SRAM Cell Ratio (CR) and Pull-Up Ratio (PR).</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q7</span> What is Static Noise Margin (SNM) in SRAM?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> SNM is the maximum DC noise voltage that can be applied to the internal storage nodes of the SRAM cell without flipping its state. It is graphically represented by the side of the largest square that can fit inside the "Butterfly Curve" formed by plotting the VTCs of the two cross-coupled inverters against each other.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q8</span> Why does DRAM require a "Destructive Read"?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A DRAM cell stores charge on a microscopic capacitor. To read it, the access transistor connects this capacitor to the bitline. The charge physically spills out onto the bitline to be read by the sense amp, destroying the voltage level in the cell. The memory controller must immediately write the data back into the cell after reading.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q9</span> Why must DRAM be refreshed?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Because the storage capacitor isn't perfect; it leaks charge into the substrate through the access transistor's subthreshold leakage and junction leakage. If not refreshed (read and written back) every few milliseconds (e.g., 64ms), the stored logic 1 will decay into a logic 0.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q10</span> What is a Multi-port RAM (e.g., Dual-Port RAM)?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A memory block that has multiple independent address, data, and control buses. A Dual-Port RAM allows two completely independent operations (e.g., two reads, two writes, or one read and one write) to occur at different memory addresses at the exact same time.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q11</span> What happens if both ports of a Dual-Port RAM attempt to Write to the exact same address simultaneously?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> This is an Address Collision (Memory Hazard). The memory contents at that address become corrupted (`X` state). The SoC architecture must implement arbitration logic or lock mechanisms outside the RAM to prevent this.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q12</span> What is a CAM (Content Addressable Memory)?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Standard RAM takes an Address and returns the Data. CAM does the exact opposite: It takes a <strong>Data Word</strong> as input, searches its entire memory simultaneously in one clock cycle, and returns the <strong>Address</strong> where that data is stored. It is used heavily in network routers for high-speed IP routing lookups.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q13</span> How does Flash Memory store data without power?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Using a <strong>Floating Gate Transistor</strong>. A secondary polysilicon gate is completely encased in insulating oxide, isolated from the rest of the circuit. High voltage is used to force electrons through the oxide via Fowler-Nordheim tunneling. Once trapped in the floating gate, they cannot escape, permanently altering the transistor's threshold voltage ($V_{TH}$) to represent a 0 or 1.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q14</span> Explain the difference between Endianness (Big-Endian vs. Little-Endian) in memory.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Endianness describes how multi-byte data words are stored in byte-addressable memory.
+                <br>&bull; <strong>Little-Endian:</strong> The Least Significant Byte (LSB) is stored at the lowest memory address. (Used by Intel x86).
+                <br>&bull; <strong>Big-Endian:</strong> The Most Significant Byte (MSB) is stored at the lowest memory address. (Used by ARM in network mode).</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q15</span> What is Memory Interleaving (Banking)?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A technique to increase memory bandwidth. Instead of one large monolithic RAM, memory is split into multiple independent banks. Sequential addresses are placed in different banks. The CPU can issue a read to Bank 0, and while Bank 0 is fetching, it can immediately issue the next read to Bank 1, hiding the memory latency.</p>
+            </div>
+        </div>
+
+
+        <!-- ================= SECTION 2: CLOCK DOMAIN CROSSING (CDC) ================= -->
+        <h3 class="text-primary border-bottom pb-2 my-4"><i class="fa-solid fa-clock-rotate-left me-2"></i>2. Clock Domain Crossing (CDC) Basics</h3>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q16</span> What constitutes a Clock Domain Crossing (CDC)?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A CDC occurs whenever a signal generated by a flip-flop in one clock domain (Launch Clock) is sampled by a flip-flop operating in a completely different, asynchronous clock domain (Capture Clock).</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q17</span> Why are CDC paths inherently dangerous?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Because the two clocks have no fixed phase relationship, the launch data will inevitably transition right as the capture clock edge arrives. This violates the Setup and Hold time requirements of the destination flip-flop, forcing it into a state of <strong>Metastability</strong>.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q18</span> What is Metastability?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A state where a flip-flop's output hovers at an intermediate voltage level between Logic 0 and Logic 1 for an unpredictable amount of time before finally resolving to a random state. If this metastable value propagates to downstream logic, the entire state machine can crash.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q19</span> Write the equation for MTBF (Mean Time Between Failures) regarding metastability.</div>
+            <div class="qa-body">
+                <div class="equation-box">
+                    $MTBF = \frac{e^{t_r / \tau}}{T_0 \cdot f_{clk} \cdot f_{data}}$
+                </div>
+                <p>Where $t_r$ is the resolution time provided to the flip-flop to settle, $\tau$ is a technology constant, $f_{clk}$ is the destination clock frequency, and $f_{data}$ is the toggle rate of the incoming data.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q20</span> How do we increase the MTBF to prevent system crashes?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> The only variable in the MTBF equation we can effectively control is $t_r$ (Resolution Time). By using a <strong>2-Flip-Flop Synchronizer</strong>, we grant the first flip-flop an entire clock cycle to resolve its metastability before the second flip-flop samples it, pushing the MTBF from fractions of a second to millions of years.</p>
+            </div>
+        </div>
+
+        <!-- SVG DIAGRAM: 2-FF SYNCHRONIZER -->
+        <div class="svg-container">
+            <h5 class="text-dark mb-3">Standard 2-FF Synchronizer</h5>
+            <svg width="550" height="150" viewBox="0 0 550 150">
+                <text x="20" y="20" font-weight="bold" fill="red">CLK_A Domain</text>
+                <text x="380" y="20" font-weight="bold" fill="blue">CLK_B Domain</text>
+                
+                <!-- Divider -->
+                <line x1="250" y1="10" x2="250" y2="140" stroke="gray" stroke-dasharray="5"/>
+
+                <!-- FF1 (Launch) -->
+                <rect x="50" y="40" width="50" height="60" fill="#ffebee" stroke="red" stroke-width="2"/>
+                <text x="65" y="75" font-weight="bold">FF1</text>
+                
+                <!-- FF2 (Sync 1) -->
+                <rect x="300" y="40" width="50" height="60" fill="#e3f2fd" stroke="blue" stroke-width="2"/>
+                <text x="315" y="75" font-weight="bold">FF2</text>
+                
+                <!-- FF3 (Sync 2) -->
+                <rect x="420" y="40" width="50" height="60" fill="#e3f2fd" stroke="blue" stroke-width="2"/>
+                <text x="435" y="75" font-weight="bold">FF3</text>
+
+                <!-- Data Path -->
+                <line x1="10" y1="70" x2="50" y2="70" stroke="black" stroke-width="2"/>
+                <line x1="100" y1="70" x2="300" y2="70" stroke="black" stroke-width="2"/>
+                <line x1="350" y1="70" x2="420" y2="70" stroke="black" stroke-width="2"/>
+                <line x1="470" y1="70" x2="520" y2="70" stroke="black" stroke-width="2"/>
+                
+                <!-- Metastability Graphic -->
+                <path d="M 160 70 Q 180 50 200 70 T 240 70" fill="none" stroke="purple" stroke-width="2"/>
+                <text x="160" y="50" fill="purple" font-size="12">Metastable</text>
+
+                <path d="M 370 70 L 400 70" fill="none" stroke="green" stroke-width="2"/>
+                <text x="365" y="50" fill="green" font-size="12">Resolved</text>
+
+                <!-- Clocks -->
+                <line x1="75" y1="130" x2="75" y2="100" stroke="red" stroke-width="2"/>
+                <text x="55" y="145" fill="red">CLK_A</text>
+                
+                <line x1="325" y1="130" x2="325" y2="100" stroke="blue" stroke-width="2"/>
+                <line x1="445" y1="130" x2="445" y2="100" stroke="blue" stroke-width="2"/>
+                <line x1="325" y1="130" x2="445" y2="130" stroke="blue" stroke-width="2"/>
+                <line x1="385" y1="130" x2="385" y2="150" stroke="blue" stroke-width="2"/>
+                <text x="365" y="165" fill="blue">CLK_B</text>
+            </svg>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q21</span> <span class="tricky-badge">Tricky</span> Does a 2-FF Synchronizer fix Setup and Hold violations?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> <strong>NO.</strong> A synchronizer does not magically make the signal meet setup/hold times. The setup/hold times <em>will</em> be violated, and the first flip-flop <em>will</em> go metastable. The 2-FF synchronizer merely acts as a quarantine zone, containing the metastability and preventing it from spreading to the rest of the logic.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q22</span> What is the Golden Rule of the 2-FF Synchronizer?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> There must be <strong>strictly ZERO combinational logic</strong> between the output of the first synchronizing flip-flop and the input of the second. Combinational logic adds delay, which steals from the resolution time ($t_r$), catastrophically destroying the MTBF.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q23</span> Why can't we use a 2-FF Synchronizer to cross a multi-bit Data Bus (e.g., a 32-bit address)?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> <strong>Data Incoherency.</strong> Because clock edges and wire delays vary slightly, some bits of the 32-bit bus might get captured on cycle 1, while other bits go metastable and get captured on cycle 2. The receiving domain reconstructs a fractured, Frankenstein data word that never existed in the source domain. 2-FF synchronizers are strictly for <strong>single-bit control signals</strong>.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q24</span> How do you safely cross a Multi-Bit Bus across clock domains?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>1. <strong>Asynchronous FIFO:</strong> (The standard method for streaming data).
+                <br>2. <strong>MUX Recirculation (Handshaking):</strong> Hold the data bus perfectly stable, pass a 1-bit "Data Valid" flag through a 2-FF synchronizer, and use that synchronized flag to toggle a MUX to capture the multi-bit data in the receiving domain.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q25</span> Define the "Fast to Slow" CDC problem.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> If CLK_A is much faster than CLK_B, a 1-cycle pulse in domain A might be so narrow that domain B completely misses it (the pulse arrives and disappears between B's clock edges). Data is permanently lost.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q26</span> How do you solve the Fast-to-Slow pulse transfer problem?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> 
+                <br>1. <strong>Pulse Stretching:</strong> Domain A must hold the signal high for at least $1.5 \times T_{clk\_B}$ to guarantee domain B catches it.
+                <br>2. <strong>Toggle Synchronizer:</strong> Domain A converts the pulse into a level toggle (T-Flip Flop). Domain B synchronizes the level, then uses an edge-detector to convert it back into a pulse.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q27</span> What is a Toggle Synchronizer? Write the receiving edge-detector logic.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Domain A toggles a signal. Domain B passes it through a 2-FF synchronizer (`sync_ff2`), then delays it by one more cycle (`sync_ff3`). An edge is detected when the two delayed versions differ.
+                <pre class="v-code">wire pulse_detected = sync_ff2 ^ sync_ff3; // XOR detects any edge</pre></p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q28</span> Define the "Slow to Fast" CDC problem.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> If CLK_A is much slower than CLK_B, a 1-cycle pulse in domain A spans many cycles in domain B. Domain B will sample it multiple times, interpreting a single event as multiple consecutive events.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q29</span> How do you solve the Slow-to-Fast pulse transfer problem?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> In Domain B, after the 2-FF synchronizer, add a third flip-flop and an AND gate to create a <strong>Rising Edge Detector</strong>.
+                <pre class="v-code">wire pulse_out = sync_ff2 & ~sync_ff3;</pre>
+                This ensures the long level signal only generates exactly one pulse in the fast domain.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q30</span> What is "Reconvergence" in CDC?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A fatal design error where two related signals from Domain A are passed through two separate 2-FF synchronizers, and then their outputs are combined (reconverged) in Domain B. Because synchronizers can delay signals unpredictably by 1 or 2 cycles due to metastability, the signals lose their alignment, causing invalid logic states in Domain B.</p>
+            </div>
+        </div>
+
+
+        <!-- ================= SECTION 3: ASYNCHRONOUS FIFOS ================= -->
+        <h3 class="text-primary border-bottom pb-2 my-4"><i class="fa-solid fa-layer-group me-2"></i>3. Asynchronous FIFOs</h3>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q31</span> What is an Asynchronous FIFO?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A First-In-First-Out memory queue where data is written using one clock (Write Clock) and read using a completely different, asynchronous clock (Read Clock). It is the industry standard mechanism for passing massive amounts of data safely between clock domains.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q32</span> What are the 4 main components of an Async FIFO?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>1. <strong>Dual-Port RAM:</strong> To hold the data (no clock-domain crossing occurs in the RAM itself).
+                <br>2. <strong>Write Pointer & Logic:</strong> Tracks where to write, synchronized to Write Clock.
+                <br>3. <strong>Read Pointer & Logic:</strong> Tracks where to read, synchronized to Read Clock.
+                <br>4. <strong>Synchronizers:</strong> 2-FF synchronizers to pass the Read Pointer to the Write domain, and the Write Pointer to the Read domain.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q33</span> Why MUST we use Gray Code for the FIFO Pointers?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Standard Binary counters change multiple bits simultaneously (e.g., $011 \rightarrow 100$ changes 3 bits). If passed through a 2-FF synchronizer, skew could cause the receiving domain to capture an invalid intermediate state (like $111$). Gray code guarantees <strong>only 1 bit changes per transition</strong>, so the receiving domain either catches the old value perfectly or the new value perfectly—never garbage.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q34</span> Write the Verilog logic to convert Binary to Gray code.</div>
+            <div class="qa-body">
+                <pre class="v-code">wire [N:0] gray = binary ^ (binary >> 1);</pre>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q35</span> Why do FIFO pointers need an extra MSB (N+1 bits) compared to the memory address width (N bits)?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> The extra MSB is used to distinguish between the "Full" and "Empty" conditions. When the Read and Write pointers wrap around the memory, their lower N bits will match. The extra MSB tracks how many times they have wrapped.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q36</span> What is the condition for FIFO Empty?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> The FIFO is exactly empty when the Read Pointer completely catches up to the Write Pointer.
+                <br><strong>Logic:</strong> `assign empty = (rd_ptr_gray == wr_ptr_gray_sync);`
+                <br>(Evaluated entirely within the Read Clock domain).</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q37</span> <span class="tricky-badge">Tricky</span> What is the condition for FIFO Full using Gray Code pointers?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> The FIFO is full when the Write Pointer wraps around and catches the Read Pointer from behind. In Gray code, this means the lower N-1 bits match exactly, but the <strong>top two MSBs are inverted</strong>.
+                <br><strong>Logic:</strong> 
+                <pre class="v-code">assign full = (wr_ptr_gray == {~rd_ptr_gray_sync[N:N-1], rd_ptr_gray_sync[N-2:0]});</pre>
+                (Evaluated entirely within the Write Clock domain).</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q38</span> Why is the "Full" flag generated in the Write Domain, and the "Empty" flag generated in the Read Domain?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Safety. The Write logic must stop writing instantly when full to prevent overwriting. It evaluates Full using its own fast, native Write pointer, compared against a delayed (synchronized) Read pointer. Same logic applies for Empty in the Read domain. This avoids cycle delays in stopping bad operations.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q39</span> What does it mean that Async FIFO flags are "Pessimistic"?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> 
+                <br>&bull; <strong>Pessimistic Full:</strong> Because the Read pointer takes 2 cycles to synchronize into the Write domain, the Write logic thinks the FIFO is full even if the Read logic just popped data. The FIFO stops writing slightly early.
+                <br>&bull; <strong>Pessimistic Empty:</strong> The Read logic thinks the FIFO is empty because the latest Write pointer hasn't synced over yet, so it stops reading slightly early.
+                <br>This pessimism slightly reduces bandwidth but guarantees 100% <strong>safety against data loss</strong>.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q40</span> Are synchronizers needed on the actual Data Bus of the Async FIFO?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> <strong>NO.</strong> Data is written directly into the Dual-Port RAM. The RAM is a static memory. By the time the Read pointer updates, synchronizes across domains, and tells the Read logic the data is ready, many clock cycles have passed. The data at that address is completely stable, avoiding all CDC issues.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q41</span> What is the "Almost Full" and "Almost Empty" flag?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Flags that assert a few cycles *before* absolute Full/Empty. They are used in high-latency bus architectures (like AXI). If the upstream bus controller takes 3 cycles to halt data transmission after receiving a stop signal, "Almost Full" must trigger 3 slots early to prevent overflow.</p>
+            </div>
+        </div>
+
+        <!-- FIFO DEPTH CALCULATIONS -->
+        <h5 class="text-primary mt-5">The Famous FIFO Depth Calculations</h5>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q42</span> Write the fundamental formula for calculating required FIFO Depth.</div>
+            <div class="qa-body">
+                <p>The goal is to calculate how much data accumulates in the FIFO during a worst-case continuous burst write, before the slower read side can pull it out.</p>
+                <div class="equation-box">
+                    $Depth = Burst\_Size - \left( \frac{Burst\_Size}{F_{write}} \right) \times F_{read}$
+                </div>
+                <p>Note: This assumes 1 data word per clock cycle.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q43</span> <span class="tricky-badge">Numerical</span> A transmitter writes at 100 MHz in bursts of 80 words. The receiver reads at 50 MHz. What is the minimum FIFO depth to prevent overflow?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>1. Time taken to write the burst: $T = 80 / 100\text{MHz} = 800\text{ns}$.
+                <br>2. How many words can be read in that 800ns window? $Read = 800\text{ns} \times 50\text{MHz} = 40\text{ words}$.
+                <br>3. Unread words accumulated: $80 - 40 = \mathbf{40\text{ words}}$.
+                <br>The FIFO depth must be at least 40.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q44</span> <span class="tricky-badge">Numerical</span> Write freq = 80 MHz, Read freq = 50 MHz. Burst size = 120. Receiver has a 1-cycle idle penalty every 4 words. Find FIFO Depth.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>1. Time to write 120 words = $120 / 80\text{M} = 1500\text{ns}$.
+                <br>2. The receiver effectively reads 4 words every 5 clock cycles. Effective Read frequency = $50\text{MHz} \times (4/5) = 40\text{MHz}$.
+                <br>3. Words read during burst = $1500\text{ns} \times 40\text{MHz} = 60\text{ words}$.
+                <br>4. Min Depth = $120 - 60 = \mathbf{60\text{ words}}$.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q45</span> Why should FIFO depth always be forced to a power of 2 (e.g., 64 instead of 60)?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> To make pointer wrapping free. If a FIFO depth is $2^N$, the N-bit pointer naturally wraps from maximum back to 0 perfectly. If you use a non-power-of-2 depth (like 60), the counter must explicitly reset at 59. This breaks the single-bit-flip rule of standard Gray code, causing catastrophic CDC failures.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q46</span> <span class="tricky-badge">Tricky</span> What if you absolutely MUST use a non-power-of-2 FIFO depth?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> You must use an <strong>Even-Symmetric Gray Code</strong> (or "Truncated Gray Code"). You throw away an equal number of states from the top and bottom of the standard Gray code sequence. Because it remains symmetric around the center, the wrap-around jump still only flips exactly one bit.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q47</span> What is a "First-Word Fall-Through" (FWFT) FIFO?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> In a standard FIFO, you assert `read_en` and the data appears on the <em>next</em> clock cycle. In a FWFT FIFO, the very first word written immediately propagates through to the output data pins without waiting for a `read_en`. The `read_en` acts as an acknowledge to discard the current word and reveal the next one. Crucial for AXI valid/ready handshaking.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q48</span> What is "Watermarking" in a FIFO?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Programmable thresholds. Instead of fixed Almost_Full logic, a CPU configures a register (the watermark) to trigger an interrupt when the FIFO hits 75% full, allowing the software driver to initiate a DMA transfer before overflow occurs.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q49</span> How do you safely reset an Async FIFO?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> An async FIFO spans two clock domains, meaning it needs two reset synchronizers. The global asynchronous reset must be synchronized into the Write Clock domain to reset the write pointers, and separately synchronized into the Read Clock domain to reset the read pointers, preventing race conditions during wake-up.</p>
+            </div>
+        </div>
+
+        <div class="qa-card border-success border-2">
+            <div class="qa-header bg-success text-white"><span class="q-number bg-dark">Q50</span> The Final Test: Does a Synchronous FIFO use Gray code pointers?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> <strong>NO.</strong> In a Synchronous FIFO, the read and write logic share the exact same clock. There are no clock domain crossings, no metastability risks, and no synchronizers. Therefore, standard Binary counters are used, making empty/full math simple subtraction. Gray code is exclusively required for Asynchronous CDC.</p>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="bg-dark text-center text-white py-4 mt-5 border-top border-secondary">
+        <p class="mb-0">© 2026 Complete VLSI Interview Handbook. Crafted for silicon engineers.</p>
+    </footer>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
