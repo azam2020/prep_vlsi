@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 1: Digital Electronics - VLSI Handbook</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- MathJax for Logic Equations -->
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [['\\(', '\\)']],
+          displayMath: [['\\[', '\\]']]
+        }
+      };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        .interview-block {
+            background-color: #fff8e1;
+            border-left: 5px solid var(--accent-color);
+            padding: 20px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .q-title {
+            font-weight: 700;
+            color: #d35400;
+        }
+        .diagram-container {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .concept-header {
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-top: 40px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html"><i class="fa-solid fa-microchip me-2"></i>VLSI Handbook</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="digital.html">Digital</a></li>
+                    <li class="nav-item"><a class="nav-link" href="verilog.html">Verilog</a></li>
+                    <li class="nav-item"><a class="nav-link" href="sta.html">STA</a></li>
+                    <li class="nav-item"><a class="nav-link" href="pd.html">Physical Design</a></li>
+                    <li class="nav-item"><a class="nav-link" href="interview.html">Q&A</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <header class="bg-light py-5 border-bottom">
+        <div class="container">
+            <h1 class="display-5 fw-bold" style="color: var(--primary-color);">Chapter 1: Digital Electronics</h1>
+            <p class="lead text-muted">The foundation of ASIC design. Master Combinational Logic, Sequential Circuits, and FSMs.</p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container my-5">
+        
+        <!-- Topic 1: Logic Gates & Universal Gates -->
+        <h2 class="concept-header">1. Logic Gates & Universal Logic</h2>
+        <p><strong>Concept:</strong> Logic gates are the basic building blocks of any digital system. NAND and NOR are called <em>Universal Gates</em> because any boolean function (AND, OR, NOT, XOR) can be implemented using only NAND or only NOR gates.</p>
+        
+        <div class="interview-block shadow-sm">
+            <h5 class="q-title"><i class="fa-solid fa-microphone me-2"></i>Interview Question</h5>
+            <p><strong>Q: Why do we prefer NAND gates over NOR gates in standard cell libraries?</strong></p>
+            <p><strong>The Satisfying Answer:</strong> "NAND gates are generally preferred because they use series NMOS transistors and parallel PMOS transistors. Because electrons (majority carriers in NMOS) have roughly 2 to 3 times higher mobility than holes (in PMOS), NMOS transistors are faster. In a NOR gate, the slower PMOS transistors are in series, which significantly degrades the rise time and increases logical effort. Therefore, NAND gates offer better area-delay characteristics."</p>
+            
+            <hr>
+            <p class="mb-1"><strong>Follow-up Q:</strong> How many 2-input NAND gates are required to implement a 2-input XOR gate?</p>
+            <p class="text-muted"><strong>Answer:</strong> 4 NAND gates. \( Y = A \oplus B \)</p>
+        </div>
+
+        <!-- Topic 2: MUX / DEMUX -->
+        <h2 class="concept-header">2. Multiplexers (MUX)</h2>
+        <p><strong>Concept:</strong> A Multiplexer is a data selector. It routes one of \( 2^N \) inputs to a single output based on \( N \) select lines. It is a universal combinational circuit; a \( 2^N:1 \) MUX can implement any \( N+1 \) variable boolean function.</p>
+        
+        <div class="diagram-container shadow-sm">
+            <h4>2:1 MUX Implementation</h4>
+            <!-- Clean SVG Diagram for 2:1 MUX -->
+            <svg width="300" height="200" viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+                <!-- MUX Body -->
+                <polygon points="100,20 200,60 200,140 100,180" fill="#f8f9fa" stroke="#0b3d91" stroke-width="3"/>
+                <text x="135" y="105" font-family="Arial" font-weight="bold" font-size="18">MUX</text>
+                
+                <!-- Inputs -->
+                <line x1="40" y1="60" x2="110" y2="60" stroke="#333" stroke-width="2"/>
+                <text x="10" y="65" font-family="Arial" font-size="16">I0</text>
+                
+                <line x1="40" y1="140" x2="110" y2="140" stroke="#333" stroke-width="2"/>
+                <text x="10" y="145" font-family="Arial" font-size="16">I1</text>
+                
+                <!-- Select Line -->
+                <line x1="150" y1="160" x2="150" y2="190" stroke="#333" stroke-width="2"/>
+                <text x="145" y="210" font-family="Arial" font-size="16">S</text>
+                
+                <!-- Output -->
+                <line x1="200" y1="100" x2="260" y2="100" stroke="#333" stroke-width="2"/>
+                <text x="270" y="105" font-family="Arial" font-size="16">Y</text>
+            </svg>
+            <p class="mt-3 font-monospace">Equation: Y = S'·I0 + S·I1</p>
+        </div>
+
+        <div class="interview-block shadow-sm">
+            <h5 class="q-title"><i class="fa-solid fa-microphone me-2"></i>Interview Question</h5>
+            <p><strong>Q: Implement a 2-input AND gate using a 2:1 MUX.</strong></p>
+            <p><strong>The Satisfying Answer:</strong> "For a 2-input AND gate, the equation is \( Y = A \cdot B \). We connect input A to the select line (S). When S=0 (A=0), the output should be 0, so we tie I0 to Ground (0). When S=1 (A=1), the output should be B, so we connect I1 to B. Thus, Y = A'·0 + A·B = A·B."</p>
+            <p class="text-danger mt-2"><strong>Common Mistake:</strong> Overcomplicating Shannon's expansion. Always use one variable as the select line and observe what the remaining function reduces to (0, 1, the other variable, or its complement).</p>
+        </div>
+
+        <!-- Topic 3: Latches vs Flip-Flops -->
+        <h2 class="concept-header">3. Sequential Logic: Latches vs Flip-Flops</h2>
+        <p><strong>Concept:</strong> Combinational logic output depends only on present inputs. Sequential logic has memory—output depends on present inputs and past states.</p>
+        <ul>
+            <li><strong>Latch:</strong> Level-sensitive. Transparent when the clock is high (or low).</li>
+            <li><strong>Flip-Flop:</strong> Edge-triggered. Samples data only at the rising (or falling) edge of the clock. A standard D Flip-Flop is built using two back-to-back latches (Master-Slave configuration).</li>
+        </ul>
+
+        <div class="interview-block shadow-sm">
+            <h5 class="q-title"><i class="fa-solid fa-microphone me-2"></i>Interview Question</h5>
+            <p><strong>Q: If Latches can cause timing issues, why do we ever use them instead of Flip-Flops?</strong></p>
+            <p><strong>The Satisfying Answer:</strong> "While Flip-Flops are safer for synchronous design and easier for EDA tools to analyze, latches use fewer transistors, saving area and power. More importantly, latches allow for <em>Time Borrowing</em>. If a combinational path is too slow, a latch allows it to 'borrow' time from the next clock cycle while it remains transparent, which is a technique used in high-performance CPU pipelines to achieve higher clock frequencies."</p>
+        </div>
+
+        <!-- Topic 4: Finite State Machines -->
+        <h2 class="concept-header">4. Finite State Machines (FSMs)</h2>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-3 shadow-sm border-0 bg-light">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary">Moore Machine</h5>
+                        <p class="card-text">Output depends <strong>ONLY</strong> on the current state.</p>
+                        <ul>
+                            <li>More states required.</li>
+                            <li>Outputs are synchronous (change only on clock edge).</li>
+                            <li>Safer design, no combinational loops to outputs.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card mb-3 shadow-sm border-0 bg-light">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary">Mealy Machine</h5>
+                        <p class="card-text">Output depends on current state <strong>AND</strong> current inputs.</p>
+                        <ul>
+                            <li>Fewer states generally required.</li>
+                            <li>Output can change asynchronously with inputs (glitch risk).</li>
+                            <li>Responds faster to input changes.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="interview-block shadow-sm">
+            <h5 class="q-title"><i class="fa-solid fa-microphone me-2"></i>Interview Question</h5>
+            <p><strong>Q: Design a sequence detector to detect "1011" (overlapping allowed). How many states are needed for a Moore vs Mealy machine?</strong></p>
+            <p><strong>The Satisfying Answer:</strong> "For a sequence of length N (N=4 here):<br>
+            A <strong>Moore</strong> machine will require N + 1 = 5 states, because the output is associated directly with reaching the final state.<br>
+            A <strong>Mealy</strong> machine will require exactly N = 4 states, because the output goes high on the transition from the 3rd state to the 1st state upon receiving the final '1'."</p>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer text-center mt-5">
+        <div class="container">
+            <p class="mb-0">© 2026 Complete VLSI Interview Handbook. Prepare with confidence.</p>
+            <a href="verilog.html" class="btn btn-outline-light mt-3">Next Chapter: Verilog HDL <i class="fa-solid fa-arrow-right ms-2"></i></a>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
