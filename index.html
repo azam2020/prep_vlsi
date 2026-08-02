@@ -10,7 +10,7 @@
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 
     <style>
         :root {
@@ -58,7 +58,7 @@
 
         .chapter-card {
             background-color: var(--card-bg);
-            border: 1px solid rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 16px;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             height: 100%;
@@ -71,13 +71,21 @@
             position: absolute;
             top: 0; left: 0; width: 100%; height: 4px;
             background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan));
-            opacity: 0.8;
+            opacity: 0.9;
         }
 
         .chapter-card:hover {
             transform: translateY(-6px);
             border-color: rgba(59, 130, 246, 0.4);
             box-shadow: 0 12px 30px -10px rgba(59, 130, 246, 0.3);
+        }
+
+        /* High visibility chapter titles */
+        .chapter-card h4 {
+            color: #ffffff !important;
+            font-weight: 700;
+            font-size: 1.25rem;
+            letter-spacing: -0.01em;
         }
 
         .chapter-icon {
@@ -99,9 +107,9 @@
             padding: 10px 14px;
             margin-bottom: 8px;
             background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
             border-radius: 8px;
-            color: var(--text-muted);
+            color: #e5e7eb;
             text-decoration: none;
             font-weight: 500;
             font-size: 0.9rem;
@@ -109,9 +117,9 @@
         }
 
         .part-link:hover {
-            background: rgba(59, 130, 246, 0.15);
+            background: rgba(59, 130, 246, 0.2);
             color: #ffffff;
-            border-color: rgba(59, 130, 246, 0.3);
+            border-color: rgba(59, 130, 246, 0.4);
             transform: translateX(4px);
         }
 
@@ -122,10 +130,10 @@
         }
 
         .badge-module {
-            background: rgba(59, 130, 246, 0.1);
-            color: #60a5fa;
-            border: 1px solid rgba(59, 130, 246, 0.2);
-            padding: 4px 10px;
+            background: rgba(59, 130, 246, 0.12);
+            color: #93c5fd;
+            border: 1px solid rgba(59, 130, 246, 0.25);
+            padding: 4px 12px;
             border-radius: 20px;
             font-size: 0.75rem;
             font-weight: 600;
@@ -137,9 +145,9 @@
 
         footer {
             background-color: #05070b;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
             color: var(--text-muted);
-            padding: 30px 0;
+            padding: 35px 0;
             margin-top: auto;
             font-size: 0.9rem;
         }
@@ -174,7 +182,7 @@
             <div class="col-md-6 col-lg-4">
                 <div class="card chapter-card p-4">
                     <div class="chapter-icon"><i class="fa-solid fa-network-wired"></i></div>
-                    <h4 class="fw-bold mb-2">1. Digital Electronics</h4>
+                    <h4 class="mb-2">1. Digital Electronics</h4>
                     <span class="badge-module">4 Parts</span>
                     <div class="d-flex flex-column gap-1 mt-2">
                         <a href="digital_part1.html" class="part-link"><i class="fa-solid fa-chevron-right"></i> Logic Gates & K-Maps</a>
@@ -189,7 +197,7 @@
             <div class="col-md-6 col-lg-4">
                 <div class="card chapter-card p-4">
                     <div class="chapter-icon"><i class="fa-solid fa-code"></i></div>
-                    <h4 class="fw-bold mb-2">2. Verilog HDL</h4>
+                    <h4 class="mb-2">2. Verilog HDL</h4>
                     <span class="badge-module">4 Parts</span>
                     <div class="d-flex flex-column gap-1 mt-2">
                         <a href="verilog_part1.html" class="part-link"><i class="fa-solid fa-chevron-right"></i> Simulation & Event Queue</a>
@@ -204,7 +212,7 @@
             <div class="col-md-6 col-lg-4">
                 <div class="card chapter-card p-4">
                     <div class="chapter-icon"><i class="fa-solid fa-bolt"></i></div>
-                    <h4 class="fw-bold mb-2">3. CMOS & VLSI Basics</h4>
+                    <h4 class="mb-2">3. CMOS & VLSI Basics</h4>
                     <span class="badge-module">3 Parts</span>
                     <div class="d-flex flex-column gap-1 mt-2">
                         <a href="cmos_part1.html" class="part-link"><i class="fa-solid fa-chevron-right"></i> MOSFETs, VTC & Noise Margins</a>
@@ -218,7 +226,7 @@
             <div class="col-md-6 col-lg-4">
                 <div class="card chapter-card p-4">
                     <div class="chapter-icon"><i class="fa-solid fa-stopwatch"></i></div>
-                    <h4 class="fw-bold mb-2">4. Static Timing Analysis</h4>
+                    <h4 class="mb-2">4. Static Timing Analysis</h4>
                     <span class="badge-module">2 Parts</span>
                     <div class="d-flex flex-column gap-1 mt-2">
                         <a href="sta_part1.html" class="part-link"><i class="fa-solid fa-chevron-right"></i> Setup/Hold, Slack & Skew</a>
@@ -231,7 +239,7 @@
             <div class="col-md-6 col-lg-4">
                 <div class="card chapter-card p-4">
                     <div class="chapter-icon"><i class="fa-solid fa-layer-group"></i></div>
-                    <h4 class="fw-bold mb-2">5. Physical Design</h4>
+                    <h4 class="mb-2">5. Physical Design</h4>
                     <span class="badge-module">2 Parts</span>
                     <div class="d-flex flex-column gap-1 mt-2">
                         <a href="pd_part1.html" class="part-link"><i class="fa-solid fa-chevron-right"></i> Floorplanning & Placement</a>
@@ -244,7 +252,7 @@
             <div class="col-md-6 col-lg-4">
                 <div class="card chapter-card p-4">
                     <div class="chapter-icon"><i class="fa-solid fa-memory"></i></div>
-                    <h4 class="fw-bold mb-2">6. SoC & CDC</h4>
+                    <h4 class="mb-2">6. SoC & CDC</h4>
                     <span class="badge-module">2 Parts</span>
                     <div class="d-flex flex-column gap-1 mt-2">
                         <a href="soc_part1.html" class="part-link"><i class="fa-solid fa-chevron-right"></i> SRAM, DRAM & CDC FIFOs</a>
@@ -257,7 +265,7 @@
             <div class="col-md-6 col-lg-4 mx-auto">
                 <div class="card chapter-card p-4">
                     <div class="chapter-icon"><i class="fa-solid fa-microscope"></i></div>
-                    <h4 class="fw-bold mb-2">7. Design for Testability</h4>
+                    <h4 class="mb-2">7. Design for Testability</h4>
                     <span class="badge-module">1 Part</span>
                     <div class="d-flex flex-column gap-1 mt-2">
                         <a href="dft_part1.html" class="part-link"><i class="fa-solid fa-chevron-right"></i> Scan, ATPG, BIST & JTAG</a>
@@ -268,11 +276,11 @@
         </div>
     </main>
 
-    <!-- Professional Footer with Author Credit -->
+    <!-- Professional Footer with Updated Compilation Credit -->
     <footer>
         <div class="container text-center">
-            <p class="mb-1">Pushing bits, closing timing, and building silicon dreams.</p>
-            <p class="mb-0">Designed with midnight oil, raw silicon grit, and infinite hardware loops by <span class="author-credit">Azam</span>.</p>
+            <p class="mb-1 text-light opacity-75">Pushing bits, closing timing, and building silicon dreams.</p>
+            <p class="mb-0">Curated, compiled, and forged through open-source collaboration and late-night hardware debugging by <span class="author-credit">Mohammad Azam</span>.</p>
         </div>
     </footer>
 
