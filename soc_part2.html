@@ -1,1 +1,512 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 6 (Part 2): SoC & AMBA Q&A - VLSI Handbook</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        .qa-card { background: white; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .qa-header { background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 15px 20px; font-weight: 700; color: #0f172a; border-top-left-radius: 8px; border-top-right-radius: 8px; }
+        .qa-body { padding: 20px; }
+        .q-number { background: #0b3d91; color: white; padding: 3px 10px; border-radius: 4px; font-size: 0.85rem; margin-right: 10px; }
+        .tricky-badge { background: #dc2626; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; float: right; }
+        .concept-box { background-color: #f0fdf4; border-left: 4px solid #16a34a; padding: 12px 15px; margin-top: 15px; border-radius: 0 4px 4px 0; font-size: 0.95rem; }
+        .trap-box { background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 12px 15px; margin-top: 15px; border-radius: 0 4px 4px 0; font-size: 0.95rem; }
+        .svg-container { background: white; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; text-align: center; margin: 20px 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        pre.v-code { background: #1e293b; color: #f8fafc; padding: 15px; border-radius: 6px; font-size: 0.9rem; margin: 10px 0; overflow-x: auto; }
+    </style>
+</head>
+<body class="bg-light">
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html"><i class="fa-solid fa-microchip me-2"></i>VLSI Handbook</a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="pd_part2.html">Ch 5 (PD)</a></li>
+                    <li class="nav-item"><a class="nav-link" href="soc_amba_part1.html">Part 1</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="#">SoC & AMBA (Part 2)</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <header class="bg-dark text-white py-4 mb-4 shadow">
+        <div class="container">
+            <h2>Chapter 6: Memories, SoC & CDC — Part 2 (Q51 to Q100)</h2>
+            <p class="mb-0 text-info">SoC Architecture, AMBA Protocols (APB, AHB, AXI), DMA, and Arbitration</p>
+        </div>
+    </header>
+
+    <main class="container my-4">
+
+        <!-- ================= SECTION 4: SoC & AMBA OVERVIEW ================= -->
+        <h3 class="text-primary border-bottom pb-2 mb-4"><i class="fa-solid fa-sitemap me-2"></i>4. SoC Architecture & AMBA Overview</h3>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q51</span> What is an SoC (System on Chip)?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> An SoC integrates all components of a computer or electronic system onto a single silicon substrate. It typically includes a CPU (microprocessor), memory blocks (ROM, RAM), hardware accelerators (GPU, NPU), timers, and peripheral interfaces (USB, SPI, UART), all connected via an on-chip communication fabric.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q52</span> What is the AMBA standard?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> <strong>Advanced Microcontroller Bus Architecture</strong>. Introduced by ARM, it is an open-standard, on-chip interconnect specification for the connection and management of functional blocks in SoC designs. It dictates how masters (CPUs/DMAs) talk to slaves (Memories/Peripherals).</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q53</span> List the 3 most common AMBA protocols used in modern SoCs and their target applications.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>1. <strong>APB (Advanced Peripheral Bus):</strong> Low bandwidth, low power, simple non-pipelined. Used for slow peripherals (UART, Timers, I2C).
+                <br>2. <strong>AHB (Advanced High-performance Bus):</strong> High bandwidth, pipelined. Used for shared memory and standard system modules.
+                <br>3. <strong>AXI (Advanced eXtensible Interface):</strong> Ultra-high performance, high frequency, parallel channels, out-of-order execution. Used for CPU-to-Memory and high-speed data streams (PCIe, Video).</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q54</span> What is the difference between a Bus Master and a Bus Slave?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> 
+                <br>&bull; <strong>Master (Initiator):</strong> The component that initiates the read or write transaction by providing address and control signals (e.g., CPU, DMA controller).
+                <br>&bull; <strong>Slave (Target):</strong> The component that responds to the transaction requested by the master. It cannot initiate transfers (e.g., Memory, APB peripherals).</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q55</span> What is an Interconnect Fabric (or Interconnect Matrix)?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A central routing hub that manages connections between multiple Masters and multiple Slaves. Instead of a single shared physical wire (which bottlenecks), modern fabrics use Crossbar Switches to allow simultaneous non-blocking transactions (e.g., Master 1 talks to Slave A while Master 2 talks to Slave B).</p>
+            </div>
+        </div>
+
+
+        <!-- ================= SECTION 5: APB (ADVANCED PERIPHERAL BUS) ================= -->
+        <h3 class="text-primary border-bottom pb-2 my-4"><i class="fa-solid fa-car-side me-2"></i>5. APB (Advanced Peripheral Bus)</h3>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q56</span> What are the defining characteristics of APB?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> It is unpipelined, meaning it cannot start a new transfer until the current one finishes. It consumes exactly 2 clock cycles per standard transfer. It lacks burst capabilities and is strictly intended for simple register programming.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q57</span> Name the key control signals of the APB protocol.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>&bull; <code>PSEL</code>: Select signal (indicates the specific slave is chosen).
+                <br>&bull; <code>PENABLE</code>: Enable signal (marks the active access phase).
+                <br>&bull; <code>PWRITE</code>: Direction (High for Write, Low for Read).
+                <br>&bull; <code>PREADY</code>: Wait state signal driven by the slave (Slave extends the transfer if it needs more time).</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q58</span> Explain the 2-cycle state machine of a standard APB Write transfer.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>1. <strong>Setup Phase (Cycle 1):</strong> The master drives Address (`PADDR`), Data (`PWDATA`), Direction (`PWRITE=1`), and asserts `PSEL`. `PENABLE` remains 0.
+                <br>2. <strong>Access Phase (Cycle 2):</strong> The master asserts `PENABLE=1`. The slave samples the data on this clock edge. If `PREADY=1`, the transfer completes. The master drops `PENABLE` and `PSEL` on the next edge.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q59</span> <span class="tricky-badge">Tricky</span> What happens if a slave drives `PREADY=0` during the Access Phase?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> The master must freeze its state. It must hold the Address, Data, `PSEL`, and `PENABLE` perfectly stable for as many clock cycles as `PREADY` remains low. The transfer only completes on the clock edge where `PENABLE=1` AND `PREADY=1` simultaneously.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q60</span> What is `PSLVERR`?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> APB Slave Error. Driven by the slave during the Access Phase (when `PREADY=1`) to indicate the transfer failed (e.g., the master tried to write to a read-only register or an invalid address).</p>
+            </div>
+        </div>
+
+        <!-- ================= SECTION 6: AHB (ADVANCED HIGH-PERFORMANCE BUS) ================= -->
+        <h3 class="text-primary border-bottom pb-2 my-4"><i class="fa-solid fa-truck-fast me-2"></i>6. AHB (Advanced High-performance Bus)</h3>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q61</span> What makes AHB faster than APB?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> AHB is <strong>Pipelined</strong>. The Address phase of the current transfer heavily overlaps with the Data phase of the previous transfer. This allows AHB to achieve 1 data transfer per clock cycle during a burst, doubling the throughput of APB.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q62</span> Describe the two pipelined phases of an AHB transfer.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>1. <strong>Address Phase:</strong> Master drives Address and Control signals (`HTRANS`, `HSIZE`, `HWRITE`). Lasts exactly 1 cycle.
+                <br>2. <strong>Data Phase:</strong> Master drives/samples Data (`HWDATA`/`HRDATA`). The slave responds with `HREADY`. Can be extended by driving `HREADY=0`.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q63</span> What does the `HTRANS` signal do, and what are its 4 states?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> It tells the slave what kind of transfer the master is performing.
+                <br>&bull; <strong>00 (IDLE):</strong> Master is doing nothing. Slave ignores data.
+                <br>&bull; <strong>01 (BUSY):</strong> Master is in the middle of a burst but needs a cycle to think. Slave ignores data.
+                <br>&bull; <strong>10 (NONSEQ):</strong> Non-sequential. The first transfer of a burst, or a single isolated transfer.
+                <br>&bull; <strong>11 (SEQ):</strong> Sequential. The continuing transfers in a burst (address is related to the previous NONSEQ transfer).</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q64</span> <span class="tricky-badge">Tricky</span> What is the difference between Master `HREADY` (Wait State) and Slave `HREADY`?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A slave uses `HREADY` to pause the <em>Data Phase</em> if it needs more time. A master uses `HTRANS = BUSY` to pause the <em>Address Phase</em> of a burst. The pipeline dictates that if a slave drives `HREADY=0`, it stalls the entire pipeline, forcing the master to freeze the address of the <em>next</em> pending transfer as well.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q65</span> What is an AHB "Split" or "Retry" response?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> If a slow slave knows it will take 100 cycles to fetch data, holding `HREADY=0` locks up the entire bus, starving other masters. 
+                <br>&bull; <strong>SPLIT/RETRY:</strong> The slave tells the arbiter "I need time, disconnect this master and let someone else use the bus. I will signal when I'm ready." This dramatically improves overall system bus utilization.</p>
+            </div>
+        </div>
+
+        <!-- ================= SECTION 7: AXI (ADVANCED EXTENSIBLE INTERFACE) ================= -->
+        <h3 class="text-primary border-bottom pb-2 my-4"><i class="fa-solid fa-rocket me-2"></i>7. AXI (Advanced eXtensible Interface)</h3>
+
+        <!-- SVG DIAGRAM: AXI CHANNELS -->
+        <div class="svg-container">
+            <h5 class="text-dark mb-3">The 5 Independent AXI Channels</h5>
+            <svg width="550" height="250" viewBox="0 0 550 250">
+                <rect x="50" y="20" width="100" height="210" fill="#e3f2fd" stroke="#0d47a1" stroke-width="2"/>
+                <text x="65" y="130" font-weight="bold" font-size="18">MASTER</text>
+                
+                <rect x="400" y="20" width="100" height="210" fill="#e8f5e9" stroke="#1b5e20" stroke-width="2"/>
+                <text x="420" y="130" font-weight="bold" font-size="18">SLAVE</text>
+
+                <!-- Channels -->
+                <!-- AR -->
+                <path d="M 150 40 L 400 40" fill="none" stroke="blue" stroke-width="3" marker-end="url(#arrow-blue)"/>
+                <text x="210" y="35" fill="blue" font-size="12">1. Read Address (AR)</text>
+                
+                <!-- R -->
+                <path d="M 400 80 L 150 80" fill="none" stroke="blue" stroke-width="3" marker-end="url(#arrow-blue-rev)"/>
+                <text x="220" y="75" fill="blue" font-size="12">2. Read Data (R)</text>
+
+                <!-- AW -->
+                <path d="M 150 140 L 400 140" fill="none" stroke="red" stroke-width="3" marker-end="url(#arrow-red)"/>
+                <text x="210" y="135" fill="red" font-size="12">3. Write Address (AW)</text>
+
+                <!-- W -->
+                <path d="M 150 180 L 400 180" fill="none" stroke="red" stroke-width="3" marker-end="url(#arrow-red)"/>
+                <text x="220" y="175" fill="red" font-size="12">4. Write Data (W)</text>
+
+                <!-- B -->
+                <path d="M 400 220 L 150 220" fill="none" stroke="red" stroke-width="3" marker-end="url(#arrow-red-rev)"/>
+                <text x="210" y="215" fill="red" font-size="12">5. Write Response (B)</text>
+
+                <defs>
+                    <marker id="arrow-blue" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                        <path d="M0,0 L0,6 L9,3 z" fill="blue" />
+                    </marker>
+                    <marker id="arrow-blue-rev" markerWidth="10" markerHeight="10" refX="0" refY="3" orient="auto" markerUnits="strokeWidth">
+                        <path d="M9,0 L9,6 L0,3 z" fill="blue" />
+                    </marker>
+                    <marker id="arrow-red" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                        <path d="M0,0 L0,6 L9,3 z" fill="red" />
+                    </marker>
+                    <marker id="arrow-red-rev" markerWidth="10" markerHeight="10" refX="0" refY="3" orient="auto" markerUnits="strokeWidth">
+                        <path d="M9,0 L9,6 L0,3 z" fill="red" />
+                    </marker>
+                </defs>
+            </svg>
+            <p class="mt-2 small text-muted">Notice how Address and Data are physically separate buses in AXI.</p>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q66</span> Name the 5 completely independent channels in the AXI protocol.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>1. <strong>AR (Read Address):</strong> Master sends read address.
+                <br>2. <strong>R (Read Data):</strong> Slave sends data back to master.
+                <br>3. <strong>AW (Write Address):</strong> Master sends write address.
+                <br>4. <strong>W (Write Data):</strong> Master sends write data.
+                <br>5. <strong>B (Write Response):</strong> Slave acknowledges the write completion.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q67</span> What is the fundamental Handshake mechanism used on ALL 5 AXI channels?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> <code>VALID</code> and <code>READY</code>.
+                <br>The source drives data/address and asserts <code>VALID</code> when the information is good. The destination asserts <code>READY</code> when it is able to accept it. The information is officially transferred <strong>ONLY</strong> on the clock edge where <code>VALID == 1</code> AND <code>READY == 1</code>.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q68</span> Can a Master wait for `READY` to be high before asserting `VALID`?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> <strong>NO.</strong> AXI protocol strictly dictates that a source must assert <code>VALID</code> completely independent of <code>READY</code>. Waiting for <code>READY</code> before driving <code>VALID</code> causes a combinatorial deadlock (deadly embrace) if the destination is simultaneously waiting for <code>VALID</code> before asserting <code>READY</code>.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q69</span> How does AXI achieve higher bandwidth than AHB using its channels?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> In AHB, Address and Data share the same pipeline constraint. In AXI, the Address and Data channels are completely separated. A master can blast 10 write addresses (AW) down the channel immediately without waiting, and then pump the actual write data (W) later. This is called <strong>Outstanding Transactions</strong>.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q70</span> What is Out-of-Order Execution in AXI?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A master can issue a read to slow memory (Transaction ID=1) and a read to fast cache (Transaction ID=2). The slave can return the data for ID=2 <em>before</em> ID=1. The master uses the Transaction IDs to reassemble the data correctly. This prevents slow transactions from blocking fast ones.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q71</span> What are the 3 AXI Burst Types (<code>AxBURST</code>)?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>1. <strong>FIXED (0b00):</strong> Address remains the same for every transfer. (Used for loading data into a single FIFO).
+                <br>2. <strong>INCR (0b01):</strong> Incrementing. Address increments by the transfer size for each beat. (Normal sequential memory access).
+                <br>3. <strong>WRAP (0b10):</strong> Wrapping. Address increments but wraps back to a lower boundary if it crosses a memory boundary. (Used exclusively by CPUs fetching cache lines).</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q72</span> In AXI, how is the total amount of data in a single burst calculated?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> It is the number of transfers (Beats) multiplied by the size of each transfer.
+                <br><code>Total Bytes = (AxLEN + 1) * (2 ^ AxSIZE)</code>.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q73</span> <span class="tricky-badge">Numerical</span> If <code>AWLEN = 8'h0F</code> and <code>AWSIZE = 3'b010</code>, how many bytes are transferred in the burst?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> 
+                <br>&bull; Beats = `AWLEN + 1` = 15 + 1 = 16 beats.
+                <br>&bull; Bytes per Beat = `2 ^ AWSIZE` = $2^2$ = 4 bytes (32-bits).
+                <br>&bull; Total Burst = 16 beats * 4 bytes/beat = <strong>64 bytes</strong>.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q74</span> What does the <code>WLAST</code> signal do?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> It is driven by the master on the Write Data (W) channel to explicitly indicate that the current data beat is the final piece of data in the entire burst. (The slave uses <code>RLAST</code> on the read channel).</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q75</span> What is WSTRB (Write Strobe) in AXI?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> It allows sparse or byte-aligned writing. There is one strobe bit for every 8 bits (byte) of the data bus. If a master sends 32-bits of data but only sets `WSTRB[0] = 1` and `WSTRB[3:1] = 0`, the slave will only overwrite the lowest byte in memory, preserving the upper 3 bytes.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q76</span> What is the difference between AXI3 and AXI4 regarding Burst Length?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> AXI3 supports a maximum of 16 beats per burst (<code>AxLEN</code> is 4 bits). AXI4 expanded this to support up to 256 beats per burst for INCR transfers (<code>AxLEN</code> is 8 bits), drastically improving DMA bulk copy performance.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q77</span> What feature did AXI4 remove from AXI3?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> <strong>Write Interleaving.</strong> In AXI3, a master could send Write Data for Transaction ID=1, then pause, send a beat of data for Transaction ID=2, then resume ID=1. It made slave logic incredibly complex to reassemble. AXI4 banned Write Interleaving; all data for a single burst must be sent continuously in order.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q78</span> What is AXI-Lite?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A simplified subset of the AXI protocol designed for simple control registers (replacing APB). It strips out bursts (all transactions are exactly 1 beat), removes IDs, and removes out-of-order execution, leaving just the 5 basic handshake channels.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q79</span> <span class="tricky-badge">Tricky</span> Can a Slave send the Write Response (B channel) before receiving the Write Data (W channel)?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> <strong>NO.</strong> AXI ordering rules explicitly state that the Slave must wait until the `WLAST` signal (final data beat) has been accepted (VALID & READY) before it is legally allowed to assert `BVALID` on the response channel.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q80</span> Explain AXI Response Codes (`BRESP` and `RRESP`).</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> 2-bit indicators of transfer success.
+                <br>&bull; <strong>OKAY (00):</strong> Success.
+                <br>&bull; <strong>EXOKAY (01):</strong> Exclusive Access Success (used for atomic semaphores/locks).
+                <br>&bull; <strong>SLVERR (10):</strong> Slave Error. Reached the slave, but the slave rejected it (e.g., read-only).
+                <br>&bull; <strong>DECERR (11):</strong> Decode Error. The address doesn't exist anywhere in the interconnect matrix.</p>
+            </div>
+        </div>
+
+
+        <!-- ================= SECTION 8: DMA & ARBITRATION ================= -->
+        <h3 class="text-primary border-bottom pb-2 my-4"><i class="fa-solid fa-microchip me-2"></i>8. DMA, Arbitration & System Integration</h3>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q81</span> What is a DMA (Direct Memory Access) controller?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A specialized hardware block that handles massive bulk data transfers between memory and peripherals (e.g., RAM to Network MAC) <strong>without using the CPU</strong>. The CPU simply configures the DMA with a Source Address, Dest Address, and Size, then goes to sleep or does other work. The DMA issues an interrupt when finished.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q82</span> How does Scatter-Gather DMA differ from Block DMA?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Standard Block DMA transfers one continuous block of memory. Scatter-Gather DMA reads a "Linked List" of descriptors from memory. It finishes transferring Block A, then automatically reads the next descriptor to find Block B and transfers it, without needing the CPU to wake up and reprogram it.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q83</span> Why do SoCs require Bus Arbitration?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Because multiple Masters (e.g., CPU, DMA, GPU) are attached to the Interconnect. If both the CPU and DMA try to read from the DDR RAM at the exact same clock cycle, the arbiter decides who gets access to the slave and who is forced to wait.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q84</span> Explain Fixed Priority Arbitration.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Masters are ranked. Master 1 always wins over Master 2. 
+                <br><strong>Flaw:</strong> Starvation. If Master 1 demands constant bus access (like a greedy GPU), Master 2 (like an audio interface) will never get access and audio will drop out.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q85</span> Explain Round-Robin Arbitration.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Access is granted sequentially in a circle (Master 1 $\rightarrow$ 2 $\rightarrow$ 3 $\rightarrow$ 1). If a master doesn't need the bus, it skips its turn. This guarantees 100% fairness and completely eliminates starvation, making it the industry standard for general-purpose buses.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q86</span> What is a Network-on-Chip (NoC)?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> In extremely large SoCs (like an Apple M-series), traditional Crossbar interconnects become too huge and unroutable. A NoC treats the silicon like an internet network. Data is packetized into "flits" and routed through packet-switched routers distributed across the chip to their destination.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q87</span> How do you prevent Deadlock in a NoC or complex Interconnect?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Deadlock happens when Master A waits for Master B, and Master B waits for Master A. It is prevented by mathematically ensuring routing algorithms are "Cycle-Free" (e.g., X-Y routing) or by allocating dedicated Virtual Channels (separate buffers) for different traffic classes.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q88</span> What is an Address Decoder in an SoC?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A combinational logic block inside the Interconnect. When a Master sends a 32-bit address (e.g., `0x4000_0000`), the decoder checks an internal memory map, determines that this address belongs to "UART0", and asserts the Select signal to route the transaction to the UART slave.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q89</span> What is a "Bridge" module (e.g., AXI2APB Bridge)?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A protocol translator. High-speed CPUs speak AXI. Slow peripherals speak APB. The bridge is an AXI Slave on one side and an APB Master on the other. It takes a fast AXI burst, breaks it down into individual APB 2-cycle transfers, and returns the response back to the AXI domain.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q90</span> What happens if an AXI Master writes to a Memory address that is not mapped to any slave?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> The Address Decoder catches the unmapped address. Instead of locking up the bus waiting for a slave that doesn't exist, the interconnect fabric contains a "Default Slave" (or Error Slave). The Default Slave immediately responds with a <code>DECERR</code> (Decode Error) to properly terminate the transaction.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q91</span> What is Memory Mapped I/O (MMIO)?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> CPUs interact with hardware peripherals (like turning on an LED or reading a sensor) by reading and writing to specific physical memory addresses. The CPU doesn't know it's an LED; it just executes a standard Store instruction to `0x8000_1004`, and the interconnect routes it to the GPIO block instead of RAM.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q92</span> <span class="tricky-badge">Tricky</span> What is an Atomic Access (Exclusive Access)?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> In multi-core systems, two CPUs might try to update the same memory location simultaneously, causing data corruption. An atomic access (using AXI `AxLOCK` signals) ensures that a CPU can Read, Modify, and Write back to a location without any other Master being allowed to access that address in between.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q93</span> Why do high-performance SoCs use multiple clock domains?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Power and timing isolation. A CPU might run at 3GHz to maximize performance, but a USB controller only needs 480MHz, and an RTC (Real-Time Clock) needs 32kHz. Splitting domains saves massive dynamic power and isolates critical timing closure to small regions.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q94</span> What is Cache Coherency?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> If a multi-core SoC has an L1 cache for CPU 0 and an L1 cache for CPU 1, they might both hold a copy of memory address `0xA000`. If CPU 0 modifies its cache, CPU 1's cache becomes "stale" (incorrect). Hardware coherency protocols (like MESI or ARM's ACE protocol) ensure all caches instantly snoop and update/invalidate stale data.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q95</span> What is QoS (Quality of Service) in an AXI Interconnect?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> <code>AxQOS</code> signals allow a Master to tag a transaction's priority. A Display Controller fetching video pixels gets high QoS so the screen doesn't tear, while a background DMA copy gets low QoS. The arbiters prioritize routing based on these tags.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q96</span> How do you verify an AXI protocol interface in testbenches?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Using VIPs (Verification IP). Engineers don't write manual AXI testbenches from scratch. They license AXI VIPs (from Cadence/Synopsys) which contain thousands of pre-written assertions (SVA) that rigorously monitor the bus and instantly flag protocol violations (e.g., "VALID fell before READY was asserted").</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q97</span> What is AXI Narrow Transfer?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> When a Master generates a transfer size (<code>AxSIZE</code>) that is narrower than the actual physical data bus width. The Master must use the <code>WSTRB</code> signals to indicate which specific byte lanes contain the valid data on the wide bus.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q98</span> What happens if an APB master writes to a slave, but the slave never asserts PREADY?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> The APB bus suffers a total dead-lock. The master freezes in the Access Phase infinitely. Robust SoC architectures prevent this by instituting Watchdog Timers inside the Interconnect that automatically terminate the transfer and return an Error if the slave takes longer than X cycles.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q99</span> In AXI, can a Write Address channel (AW) and Write Data channel (W) arrive simultaneously?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Yes. The AXI protocol explicitly states there is no fixed temporal relationship between AW and W. The data can arrive simultaneously with the address, after the address, or even <em>before</em> the address (though sending data before the address is discouraged for performance reasons in AXI4).</p>
+            </div>
+        </div>
+
+        <div class="qa-card border-success border-2">
+            <div class="qa-header bg-success text-white"><span class="q-number bg-dark">Q100</span> The Final Test: What is the main architectural difference between AXI and APB?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> APB is a <strong>shared-bus, non-pipelined, 2-cycle protocol</strong> where Address and Data are inherently tied together in time. AXI is a <strong>channel-based, decoupled, burst-oriented protocol</strong> where Address, Data, and Response travel on separate physical channels, enabling outstanding, overlapping, and out-of-order execution.</p>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="bg-dark text-center text-white py-4 mt-5 border-top border-secondary">
+        <p class="mb-0">© 2026 Complete VLSI Interview Handbook. Crafted for silicon engineers.</p>
+    </footer>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
