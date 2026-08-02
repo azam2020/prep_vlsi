@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 1 (Part 1): Logic & Boolean - VLSI Handbook</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [['\\(', '\\)']],
+          displayMath: [['\\[', '\\]']]
+        }
+      };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        .topic-section { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 40px; }
+        .badge-tag { font-size: 0.85rem; padding: 5px 10px; margin-right: 10px; border-radius: 4px; font-weight: 600; }
+        .def { background: #e3f2fd; color: #0d47a1; }
+        .simple { background: #e8f5e9; color: #1b5e20; }
+        .tech { background: #f3e5f5; color: #4a148c; }
+        .interview-block { background-color: #fff8e1; border-left: 5px solid var(--accent-color); padding: 20px; border-radius: 4px; margin: 20px 0; }
+        .tip-box { background-color: #e0f7fa; border-left: 5px solid #00acc1; padding: 15px; margin-top: 15px; }
+        .mistake-box { background-color: #ffebee; border-left: 5px solid #f44336; padding: 15px; margin-top: 15px; }
+        pre.verilog-code { background: #282c34; color: #abb2bf; padding: 15px; border-radius: 5px; }
+        .kmap-table th, .kmap-table td { border: 1px solid #333; text-align: center; width: 50px; height: 50px; font-size: 1.2rem; }
+        .kmap-table { margin: 0 auto; }
+    </style>
+</head>
+<body class="bg-light">
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html"><i class="fa-solid fa-microchip me-2"></i>VLSI Handbook</a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="#">Digital (Part 1)</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <header class="bg-dark text-white py-4 mb-4">
+        <div class="container">
+            <h2>Chapter 1: Digital Electronics (Part 1/4)</h2>
+            <p class="mb-0">Logic Gates, Universal Logic, Boolean Algebra, and Karnaugh Maps</p>
+        </div>
+    </header>
+
+    <main class="container">
+        
+        <!-- 1. LOGIC GATES -->
+        <section class="topic-section">
+            <h3 class="text-primary border-bottom pb-2">1. Logic Gates & Universal Logic</h3>
+            
+            <p><span class="badge-tag def">Definition</span> Basic electronic circuits that operate on one or more input signals to produce a standard output signal according to boolean logic.</p>
+            <p><span class="badge-tag simple">Simple Explanation</span> Think of them as tiny decision-making bouncers at a club. AND means "both must have IDs," OR means "at least one must have an ID," and NOT means "do the exact opposite."</p>
+            <p><span class="badge-tag tech">Technical Explanation</span> In CMOS VLSI, gates are built using Pull-Up Networks (PMOS) and Pull-Down Networks (NMOS). NAND and NOR are termed <em>Universal Gates</em> because any logic function (AND, OR, NOT, XOR, XNOR) can be synthesized using exclusively NAND or exclusively NOR gates. NAND is the industry standard due to optimal area-delay metrics (Logical Effort).</p>
+
+            <div class="row my-4 text-center">
+                <div class="col-md-6">
+                    <h5>CMOS NAND Gate Structure</h5>
+                    <svg width="200" height="250" viewBox="0 0 200 250">
+                        <text x="10" y="20" fill="red">Vdd (Power)</text>
+                        <line x1="50" y1="30" x2="150" y2="30" stroke="red" stroke-width="3"/>
+                        <!-- PMOS parallel -->
+                        <line x1="75" y1="30" x2="75" y2="90" stroke="black" stroke-width="2"/>
+                        <line x1="125" y1="30" x2="125" y2="90" stroke="black" stroke-width="2"/>
+                        <rect x="65" y="90" width="20" height="20" fill="white" stroke="blue" stroke-width="2"/>
+                        <rect x="115" y="90" width="20" height="20" fill="white" stroke="blue" stroke-width="2"/>
+                        <text x="50" y="105" font-size="12">A</text>
+                        <text x="140" y="105" font-size="12">B</text>
+                        <!-- Output -->
+                        <line x1="75" y1="110" x2="100" y2="130" stroke="black" stroke-width="2"/>
+                        <line x1="125" y1="110" x2="100" y2="130" stroke="black" stroke-width="2"/>
+                        <line x1="100" y1="130" x2="160" y2="130" stroke="black" stroke-width="2"/>
+                        <text x="170" y="135" font-weight="bold">Out = (AB)'</text>
+                        <!-- NMOS Series -->
+                        <line x1="100" y1="130" x2="100" y2="150" stroke="black" stroke-width="2"/>
+                        <rect x="90" y="150" width="20" height="20" fill="white" stroke="green" stroke-width="2"/>
+                        <text x="75" y="165" font-size="12">A</text>
+                        <line x1="100" y1="170" x2="100" y2="190" stroke="black" stroke-width="2"/>
+                        <rect x="90" y="190" width="20" height="20" fill="white" stroke="green" stroke-width="2"/>
+                        <text x="75" y="205" font-size="12">B</text>
+                        <line x1="100" y1="210" x2="100" y2="230" stroke="black" stroke-width="2"/>
+                        <line x1="80" y1="230" x2="120" y2="230" stroke="black" stroke-width="3"/>
+                        <text x="130" y="235" font-size="12">GND</text>
+                    </svg>
+                    <p class="text-muted small">Parallel PMOS (fast), Series NMOS (fast)</p>
+                </div>
+                <div class="col-md-6">
+                    <h5>Verilog Implementation</h5>
+                    <pre class="verilog-code text-start"><code>// Dataflow modeling
+module universal_gates (
+    input a, b,
+    output nand_out, nor_out
+);
+    assign nand_out = ~(a & b);
+    assign nor_out  = ~(a | b);
+endmodule</code></pre>
+                </div>
+            </div>
+
+            <div class="interview-block shadow-sm">
+                <h5 class="text-danger fw-bold"><i class="fa-solid fa-microphone me-2"></i>The Interview Scenario</h5>
+                <p><strong>Interviewer:</strong> "Why is the NAND gate the preferred universal gate in ASIC standard cell libraries over the NOR gate?"</p>
+                <p><strong>Your Satisfying Answer:</strong> "It comes down to carrier mobility and delay. In CMOS, the majority carriers in NMOS (electrons) have about 2-3 times higher mobility than holes in PMOS. A NAND gate uses NMOS in series and PMOS in parallel. A NOR gate does the opposite, putting the slower PMOS in series. To make a NOR gate have the same rise/fall delay as a NAND gate, you have to size up the PMOS significantly, which drastically increases input capacitance and area. Therefore, NAND is faster and smaller."</p>
+                
+                <hr>
+                <p class="mb-1"><strong>Follow-up Q:</strong> "How would you implement an XOR gate using only NAND gates? How many do you need?"</p>
+                <p class="mb-1 text-muted"><strong>Answer:</strong> "It requires exactly 4 NAND gates. One for (A NAND B). Then A NAND with that output, and B NAND with that output. Finally, a fourth NAND gate takes the outputs of the second and third to produce A XOR B."</p>
+            </div>
+
+            <div class="mistake-box">
+                <strong><i class="fa-solid fa-triangle-exclamation"></i> Common Mistake:</strong> Candidates often memorize that "NAND uses less area," but fail to explain <em>why</em> sizing the PMOS in a NOR gate increases the input capacitance, affecting the delay of the previous driving stage.
+            </div>
+            <div class="tip-box">
+                <strong><i class="fa-solid fa-lightbulb"></i> Real Interview Tip:</strong> Whenever an interviewer asks a "NAND vs NOR" or "Why NMOS vs PMOS" question, the magic keyword is <strong>Carrier Mobility</strong>. Say it immediately.
+            </div>
+        </section>
+
+        <!-- 2. BOOLEAN ALGEBRA -->
+        <section class="topic-section">
+            <h3 class="text-primary border-bottom pb-2">2. Boolean Algebra & Minimization</h3>
+            
+            <p><span class="badge-tag def">Definition</span> The mathematical branch used to analyze and simplify digital logic circuits using the values 0 (false) and 1 (true).</p>
+            <p><span class="badge-tag simple">Simple Explanation</span> It's algebra where addition is OR, multiplication is AND, and everything is limited to 1s and 0s. We use its rules to shrink a massive equation into a tiny one, saving transistors on the silicon.</p>
+            <p><span class="badge-tag tech">Technical Explanation</span> The most critical theorems for VLSI engineers are De Morgan's Laws and the Consensus Theorem. Minimizing boolean logic before synthesis prevents unnecessary gate instantiation, reducing dynamic power consumption ($P = \alpha C V^2 f$).</p>
+
+            <table class="table table-bordered text-center my-4">
+                <thead class="table-dark">
+                    <tr><th>Rule Name</th><th>Expression</th><th>Rule Name</th><th>Expression</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Identity</td><td>A + 0 = A <br> A · 1 = A</td><td>Null</td><td>A + 1 = 1 <br> A · 0 = 0</td></tr>
+                    <tr><td>Idempotent</td><td>A + A = A <br> A · A = A</td><td>Inverse</td><td>A + A' = 1 <br> A · A' = 0</td></tr>
+                    <tr><td>De Morgan's</td><td>(A + B)' = A' · B'</td><td>De Morgan's</td><td>(A · B)' = A' + B'</td></tr>
+                    <tr class="table-warning fw-bold">
+                        <td>Consensus</td>
+                        <td colspan="3">AB + A'C + BC = AB + A'C</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="interview-block shadow-sm">
+                <h5 class="text-danger fw-bold"><i class="fa-solid fa-microphone me-2"></i>The Interview Scenario</h5>
+                <p><strong>Interviewer:</strong> "Simplify the boolean expression: \( Y = (A + B)(A + C) \)"</p>
+                <p><strong>Your Satisfying Answer:</strong> "I'll expand it using distributive laws: \( Y = AA + AC + AB + BC \).<br>
+                Since \( AA = A \), it becomes \( Y = A + AC + AB + BC \).<br>
+                Extracting A from the first three terms: \( Y = A(1 + C + B) + BC \).<br>
+                Since 1 OR anything is 1, this becomes \( Y = A(1) + BC \).<br>
+                The final simplified equation is \( Y = A + BC \)."</p>
+                
+                <hr>
+                <p class="mb-1"><strong>Follow-up Q:</strong> "What is the Consensus Theorem, and can you apply it to: \( AB' + A'C + BC \)?"</p>
+                <p class="mb-1 text-muted"><strong>Answer:</strong> "The consensus theorem states that \( XY + X'Z + YZ = XY + X'Z \). The term \( YZ \) is the consensus term and is redundant. In your equation, the terms are \( A(B') \) and \( A'(C) \). The consensus of \( B' \) and \( C \) is \( B'C \). Your third term is \( BC \), which is NOT the consensus term. Therefore, \( AB' + A'C + BC \) cannot be simplified further using the consensus theorem directly."</p>
+            </div>
+            
+            <div class="mistake-box">
+                <strong><i class="fa-solid fa-triangle-exclamation"></i> Common Mistake:</strong> Blindly applying the consensus theorem without checking if the third term is exactly the product of the two non-complemented variables.
+            </div>
+        </section>
+
+        <!-- 3. KARNAUGH MAPS -->
+        <section class="topic-section">
+            <h3 class="text-primary border-bottom pb-2">3. Karnaugh Maps (K-Maps)</h3>
+            
+            <p><span class="badge-tag def">Definition</span> A graphical tool used to systematically minimize boolean expressions without needing algebraic rules.</p>
+            <p><span class="badge-tag simple">Simple Explanation</span> It's a grid where you plot your 1s. If 1s sit next to each other (in groups of 2, 4, 8), you draw a circle around them. The bigger the circle, the simpler the logic gate becomes.</p>
+            <p><span class="badge-tag tech">Technical Explanation</span> K-maps utilize Gray Code (only one bit changes between adjacent cells: 00, 01, 11, 10). This ensures that physically adjacent cells differ by exactly one variable, allowing for immediate visual simplification via the minimization rule \( Ax + Ax' = A \).</p>
+
+            <div class="row my-4 align-items-center">
+                <div class="col-md-6 text-center">
+                    <h5>4-Variable K-Map (Gray Code Wrap-around)</h5>
+                    <table class="kmap-table">
+                        <tr>
+                            <td style="border:none"></td>
+                            <th style="border:none">00</th>
+                            <th style="border:none">01</th>
+                            <th style="border:none">11</th>
+                            <th style="border:none">10</th>
+                        </tr>
+                        <tr>
+                            <th style="border:none">00</th>
+                            <td>0</td><td>1</td><td class="bg-warning">1</td><td>0</td>
+                        </tr>
+                        <tr>
+                            <th style="border:none">01</th>
+                            <td>0</td><td>1</td><td class="bg-warning">1</td><td>0</td>
+                        </tr>
+                        <tr>
+                            <th style="border:none">11</th>
+                            <td class="bg-info">1</td><td class="bg-info">1</td><td>0</td><td>0</td>
+                        </tr>
+                        <tr>
+                            <th style="border:none">10</th>
+                            <td class="bg-info">1</td><td class="bg-info">1</td><td>0</td><td>0</td>
+                        </tr>
+                    </table>
+                    <p class="mt-2 small">Yellow = Group of 4 (eliminates 2 vars). Blue = Group of 4.</p>
+                </div>
+                <div class="col-md-6">
+                    <h5 class="text-danger">K-Map Terminology</h5>
+                    <ul>
+                        <li><strong>Implicant:</strong> Any valid group of 1s (any rectangle).</li>
+                        <li><strong>Prime Implicant (PI):</strong> A group of 1s that cannot be made any larger.</li>
+                        <li><strong>Essential Prime Implicant (EPI):</strong> A prime implicant that covers at least one '1' that is not covered by any other prime implicant. <em>You MUST include EPIs in your final answer.</em></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="interview-block shadow-sm">
+                <h5 class="text-danger fw-bold"><i class="fa-solid fa-microphone me-2"></i>The Interview Scenario</h5>
+                <p><strong>Interviewer:</strong> "What is a 'Don't Care' condition in a K-Map, and how does it affect physical hardware?"</p>
+                <p><strong>Your Satisfying Answer:</strong> "A 'Don't Care' (X) represents an input combination that will never occur in the system, or an output state that doesn't matter if it happens. In a K-Map, we can choose to treat an 'X' as a 1 if it helps make a larger grouping (which reduces hardware logic), or treat it as a 0 if it doesn't help. In physical hardware, leveraging don't cares reduces the number of logic gates required, saving silicon area, routing congestion, and leakage power."</p>
+                
+                <hr>
+                <p class="mb-1"><strong>Follow-up Q:</strong> "Can an Essential Prime Implicant consist entirely of Don't Cares?"</p>
+                <p class="mb-1 text-muted"><strong>Answer:</strong> "No. A prime implicant must cover at least one actual '1'. We only circle Don't Cares to help group existing 1s. Grouping only Don't Cares would add unnecessary gates to the circuit for an output we don't care about."</p>
+            </div>
+
+            <div class="mistake-box">
+                <strong><i class="fa-solid fa-triangle-exclamation"></i> Common Mistake:</strong> Forgetting that K-Maps "wrap around". The far-left column is adjacent to the far-right column, and the top row is adjacent to the bottom row. Four 1s in the four corners make a valid group of four!
+            </div>
+        </section>
+
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
