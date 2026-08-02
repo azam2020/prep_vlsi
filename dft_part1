@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 7: DFT & JTAG Q&A - VLSI Handbook</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        .qa-card { background: white; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .qa-header { background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 15px 20px; font-weight: 700; color: #0f172a; border-top-left-radius: 8px; border-top-right-radius: 8px; }
+        .qa-body { padding: 20px; }
+        .q-number { background: #0b3d91; color: white; padding: 3px 10px; border-radius: 4px; font-size: 0.85rem; margin-right: 10px; }
+        .tricky-badge { background: #dc2626; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; float: right; }
+        .concept-box { background-color: #f0fdf4; border-left: 4px solid #16a34a; padding: 12px 15px; margin-top: 15px; border-radius: 0 4px 4px 0; font-size: 0.95rem; }
+        .trap-box { background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 12px 15px; margin-top: 15px; border-radius: 0 4px 4px 0; font-size: 0.95rem; }
+        .svg-container { background: white; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; text-align: center; margin: 20px 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+    </style>
+</head>
+<body class="bg-light">
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html"><i class="fa-solid fa-microchip me-2"></i>VLSI Handbook</a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="soc_amba_part2.html">Ch 6</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="#">DFT (Chapter 7)</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <header class="bg-dark text-white py-4 mb-4 shadow">
+        <div class="container">
+            <h2>Chapter 7: Design for Testability (DFT)</h2>
+            <p class="mb-0 text-info">Fault Models, Scan Chains, ATPG, BIST, and JTAG Boundary Scan</p>
+        </div>
+    </header>
+
+    <main class="container my-4">
+
+        <!-- ================= SECTION 1: DFT BASICS & FAULT MODELS ================= -->
+        <h3 class="text-primary border-bottom pb-2 mb-4"><i class="fa-solid fa-microscope me-2"></i>1. DFT Basics & Fault Models</h3>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q1</span> What is Design for Testability (DFT)?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> DFT is the practice of adding specialized hardware features to an IC design to make it easier to test the manufactured silicon for physical defects. It bridges the gap between perfectly simulated RTL and the reality of dirty manufacturing processes (dust, over-etching, misalignment) that cause physical shorts or opens.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q2</span> What is the difference between Functional Verification and Silicon Testing (DFT)?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> 
+                <br>&bull; <strong>Verification (Pre-Silicon):</strong> Ensures the RTL logic does what the specification says. It finds <em>design bugs</em>.
+                <br>&bull; <strong>DFT (Post-Silicon):</strong> Assumes the logic is perfect. It checks if the physical chip was manufactured correctly. It finds <em>manufacturing defects</em>.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q3</span> What are the two fundamental pillars of Testability?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>1. <strong>Controllability:</strong> The ability to set a specific internal node to a desired logic state (0 or 1) from the external input pins.
+                <br>2. <strong>Observability:</strong> The ability to observe the logical state of a specific internal node at the external output pins.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q4</span> What is the Stuck-at Fault (SAF) model?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A logical fault model that assumes a manufacturing defect causes a specific wire/node in the circuit to be permanently tied to VDD (<strong>Stuck-at-1 / SA1</strong>) or permanently tied to GND (<strong>Stuck-at-0 / SA0</strong>), regardless of the signals driving it.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q5</span> How do you test for a Stuck-at-0 fault on a wire?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> You must <strong>Control</strong> the wire to a Logic 1 (using input stimulus), and then <strong>Observe</strong> the wire at an output. If the output shows the behavior of a Logic 1, the wire is healthy. If the output shows the behavior of a Logic 0, the wire is Stuck-at-0.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q6</span> What is Fault Equivalence (Fault Collapsing)?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Many faults produce the exact same erroneous output, making them indistinguishable. For example, a Stuck-at-0 on the input of an AND gate produces the exact same output (0) as a Stuck-at-0 on the output of the AND gate. Fault collapsing groups these equivalent faults together, so ATPG only needs to generate one test pattern for the whole group, drastically reducing test time.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q7</span> What is the Transition Delay Fault (TDF) model?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> While SAF checks if a wire can toggle at all, TDF checks if it can toggle <em>fast enough</em>. It detects slow-to-rise and slow-to-fall defects caused by partial resistive shorts or vias with excessive resistance. It requires two test patterns (Launch and Capture) run at the target clock speed (At-Speed Testing).</p>
+            </div>
+        </div>
+
+        <!-- ================= SECTION 2: SCAN CHAINS ================= -->
+        <h3 class="text-primary border-bottom pb-2 my-4"><i class="fa-solid fa-link me-2"></i>2. Scan Chain Architecture</h3>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q8</span> What is a Scan Chain, and why do we need it?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Deep inside a chip, there are flip-flops buried behind 100 levels of logic, making them impossible to control or observe from the I/O pins. A Scan Chain converts every standard flip-flop into a Shift Register. During test mode, test equipment shifts data directly into every flip-flop serially, bypassing the combinational logic entirely.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q9</span> How is a standard D-Flip-Flop converted into a Scan Flip-Flop (SFF)?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A 2:1 Multiplexer is physically added to the D-input of the flip-flop.
+                <br>&bull; <strong>D (Data):</strong> The normal functional data pin.
+                <br>&bull; <strong>SI (Scan In):</strong> The test data pin coming from the previous flip-flop in the chain.
+                <br>&bull; <strong>SE (Scan Enable):</strong> The select line that toggles between Functional Mode and Shift Mode.</p>
+            </div>
+        </div>
+
+        <!-- SVG DIAGRAM: SCAN FLIP-FLOP -->
+        <div class="svg-container">
+            <h5 class="text-dark mb-3">Scan Flip-Flop (SFF) Architecture</h5>
+            <svg width="400" height="150" viewBox="0 0 400 150">
+                <!-- MUX -->
+                <polygon points="100,30 140,50 140,110 100,130" fill="#fff3e0" stroke="#e65100" stroke-width="2"/>
+                <text x="105" y="85" font-weight="bold" fill="#e65100">MUX</text>
+                
+                <line x1="50" y1="60" x2="100" y2="60" stroke="black" stroke-width="2"/>
+                <text x="35" y="65" font-weight="bold">D</text>
+                
+                <line x1="50" y1="100" x2="100" y2="100" stroke="blue" stroke-width="2"/>
+                <text x="30" y="105" fill="blue" font-weight="bold">SI</text>
+                
+                <line x1="120" y1="120" x2="120" y2="140" stroke="red" stroke-width="2"/>
+                <text x="110" y="150" fill="red" font-weight="bold">SE</text>
+
+                <!-- DFF -->
+                <rect x="200" y="40" width="60" height="80" fill="#e3f2fd" stroke="#0d47a1" stroke-width="2"/>
+                <text x="215" y="60" font-weight="bold">DFF</text>
+                
+                <!-- Connections -->
+                <line x1="140" y1="80" x2="200" y2="80" stroke="black" stroke-width="2"/>
+                <line x1="260" y1="60" x2="330" y2="60" stroke="black" stroke-width="2"/>
+                <text x="340" y="65" font-weight="bold">Q (to logic)</text>
+
+                <line x1="260" y1="100" x2="330" y2="100" stroke="blue" stroke-width="2"/>
+                <text x="340" y="105" fill="blue" font-weight="bold">SO (to next SI)</text>
+
+                <!-- Clock -->
+                <line x1="180" y1="110" x2="200" y2="110" stroke="black" stroke-width="2"/>
+                <path d="M 200 100 L 210 110 L 200 120" fill="none" stroke="black" stroke-width="2"/>
+                <text x="150" y="115">CLK</text>
+            </svg>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q10</span> Explain the Shift Mode vs. Capture Mode process in Scan Testing.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>1. <strong>Shift Mode (SE = 1):</strong> The MUX connects SI. The tester clocks the chip repeatedly to serially shift the test pattern into all flip-flops like a giant shift register.
+                <br>2. <strong>Capture Mode (SE = 0):</strong> The MUX connects functional D. The tester pulses the clock exactly <strong>once</strong>. The flip-flops capture the combinatorial logic response to the test pattern.
+                <br>3. <strong>Shift Out (SE = 1):</strong> The captured responses are serially shifted out through the SO pin while the next test pattern is shifted in.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q11</span> What is the timing and area penalty of adding Scan Chains?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> 
+                <br>&bull; <strong>Area:</strong> Increases by ~5-10% because every flip-flop gets a MUX, increasing silicon footprint.
+                <br>&bull; <strong>Timing:</strong> The MUX sits directly in the data path, adding a gate delay to every single Reg-to-Reg path, slightly degrading the maximum clock frequency (Setup penalty).</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q12</span> Why are Hold Time violations the biggest nightmare in Scan Chains?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> In Shift Mode, the Q pin of FF1 connects directly to the SI pin of FF2. There is almost zero combinational logic (zero delay) between them. If there is even a tiny bit of clock skew between FF1 and FF2, FF2 will suffer a catastrophic hold violation and capture the wrong shift bit, breaking the entire scan chain.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q13</span> <span class="tricky-badge">Tricky</span> How are Hold violations fixed in a Scan Chain?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Since scan paths are not critical for setup time (shifting is done at very low frequencies, e.g., 10-50 MHz), the physical design tool aggressively inserts <strong>Delay Buffers</strong> between the SO pin of one flop and the SI pin of the next, artificially inflating the path delay to guarantee hold time safety.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q14</span> What is a Lockup Latch, and when is it used in Scan Chains?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A negative-level sensitive latch placed between two scan flip-flops that reside in <strong>different clock domains</strong> (or different branches of a highly skewed clock tree). It delays the shift data by a half-cycle, guaranteeing immense hold-time margin across the domain crossing.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q15</span> What is Scan Chain Reordering?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> During synthesis, the tool stitches the scan chain alphabetically based on RTL names, resulting in scan wires crisscrossing the chip randomly. During Placement, the tool disconnects the chain and re-stitches it based purely on physical proximity, connecting neighbors to neighbors to drastically reduce routing congestion.</p>
+            </div>
+        </div>
+
+        <!-- ================= SECTION 3: ATPG (Automatic Test Pattern Generation) ================= -->
+        <h3 class="text-primary border-bottom pb-2 my-4"><i class="fa-solid fa-laptop-code me-2"></i>3. ATPG (Automatic Test Pattern Generation)</h3>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q16</span> What is ATPG?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Automatic Test Pattern Generation. It is an EDA software algorithm that analyzes the gate-level netlist and mathematically calculates the exact 1s and 0s (test vectors) required to be shifted into the scan chain to excite and observe every possible fault in the design.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q17</span> What is Fault Coverage vs. Test Coverage?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>&bull; <strong>Fault Coverage:</strong> (Detected Faults / Total Faults). Includes untestable faults in the denominator.
+                <br>&bull; <strong>Test Coverage:</strong> (Detected Faults / Total Testable Faults). This is the metric engineers care about. Target is usually >99%.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q18</span> What causes a fault to be "Untestable"?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Redundant logic, floating inputs, or logic explicitly tied to VDD/GND (like Tie cells). If a node is permanently tied to 1, a Stuck-at-1 fault is impossible to detect because the node behaves exactly as intended.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q19</span> <span class="tricky-badge">Tricky</span> What is At-Speed Testing, and why is it necessary?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Legacy SAF tests are run at very slow shift frequencies (e.g., 20MHz). A wire might pass SAF at 20MHz, but due to a highly resistive via defect, it fails at the functional speed of 1GHz (Transition Delay Fault). At-Speed Testing uses the PLL to fire the <em>Capture</em> clock pulses at the true functional 1GHz frequency to catch these resistive defects.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q20</span> Explain LOC (Launch-Off-Capture) vs LOS (Launch-Off-Shift) in At-Speed testing.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Two methods for testing Transition Delay Faults:
+                <br>&bull; <strong>LOS:</strong> The transition is launched by the <em>last Shift clock edge</em>, and captured by a fast Capture edge. (Requires SE to toggle extremely fast, which is hard to route).
+                <br>&bull; <strong>LOC (Broadside):</strong> Shift completes. SE goes low. The PLL fires TWO fast Capture pulses. The first pulse launches the transition, the second pulse captures it. (Industry standard because SE doesn't need to be timing-critical).</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q21</span> What is IDDQ Testing?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> It measures the Quiescent Power Supply Current ($I_{DDQ}$). In perfect CMOS, static current is extremely low. The tester halts the clock and measures the DC current. If there is a bridging fault (short circuit) or a damaged gate oxide, the quiescent current will be anomalously high, instantly flagging a defective chip.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q22</span> Why is IDDQ testing becoming obsolete in sub-10nm nodes?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Background subthreshold leakage current is so massively high in deep sub-micron nodes that the tiny extra leakage caused by a defect is completely masked by the background noise. It is impossible to distinguish a healthy leaky chip from a defective chip.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q23</span> What is Test Compression?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A chip with 1 million flip-flops needs 1 million cycles just to shift in one test pattern. This takes too long on expensive ATE (Automated Test Equipment). Compression uses a decompressor on-chip to take a few pins of compressed data from the tester, expand it into thousands of short internal scan chains, and compress the output signatures, cutting test time by 100x.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q24</span> What are "X-states" in ATPG, and why are they dangerous?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Unknown states caused by uninitialized memory, analog blocks, or asynchronous resets during test mode. If an X-state propagates into the scan chain, it corrupts the expected output signature, causing the tester to fail a perfectly good chip. DFT engineers use X-bounding (blocking X's with AND/OR gates) to isolate them.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q25</span> What does a Silicon Tester (ATE) actually do on the factory floor?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> The ATE (Automated Test Equipment) is a million-dollar machine with mechanical probes. It touches the chip's pads, applies power, controls the Scan Enable, pumps the ATPG 1s and 0s into the Scan In pins, reads the Scan Out pins, and compares the output against a golden file to bin the chip as Pass or Fail.</p>
+            </div>
+        </div>
+
+        <!-- ================= SECTION 4: BIST (BUILT-IN SELF-TEST) ================= -->
+        <h3 class="text-primary border-bottom pb-2 my-4"><i class="fa-solid fa-microchip me-2"></i>4. Memory & Logic BIST</h3>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q26</span> What is BIST (Built-In Self-Test)?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> BIST places the testing logic (pattern generator and output comparator) directly <strong>inside the silicon chip</strong>. Instead of an external $1M tester pumping bits, the chip tests itself at full functional speed and simply outputs a 1-bit Pass/Fail signal.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q27</span> Why do we use MBIST (Memory BIST) specifically for SRAMs?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> SRAMs are insanely dense and make up 50-70% of an SoC's area. They cannot be put on a scan chain. MBIST is a dedicated hardware controller placed next to the SRAM that bombards it with specific algorithmic read/write patterns at full CPU speed to find cell defects.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q28</span> What are the typical faults found in Memories?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>&bull; <strong>Stuck-at Faults:</strong> A memory cell is stuck at 0 or 1.
+                <br>&bull; <strong>Coupling Faults:</strong> Writing a 1 to Cell A accidentally flips Cell B.
+                <br>&bull; <strong>Address Decoder Faults:</strong> Writing to Address 0 accidentally writes to Address 4.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q29</span> What is a March Algorithm in MBIST?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A sequence of operations applied to every cell in the memory array, marching from Address 0 to N, and then from N back to 0. It uses operations like: <code>Write 0, Read 0, Write 1, Read 1</code>.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q30</span> <span class="tricky-badge">Tricky</span> Why is the "March C-" algorithm the industry standard?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Because of its mathematical efficiency. With a complexity of $O(10N)$ (10 operations per memory word), March C- is mathematically proven to detect 100% of stuck-at faults, 100% of address decoder faults, and 100% of unlinked coupling faults. It provides maximum coverage in minimal test time.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q31</span> What is Memory Repair (BISR - Built-In Self-Repair)?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> SRAM blocks are fabricated with extra "redundant" rows and columns. If MBIST detects a defective cell, BISR uses eFuses (blowable fuses) to permanently remap the address decoder, bypassing the broken row and substituting a redundant row. This saves chips that would otherwise be thrown away, massively increasing manufacturing yield.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q32</span> What is Logic BIST (LBIST)?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> While MBIST tests memory, LBIST tests the standard combinational logic. It generates pseudo-random test patterns internally, feeds them into the scan chains, and compresses the outputs into a signature. It is heavily used in Automotive chips (ISO 26262) so the car can test its own brakes/steering chip every time you start the engine.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q33</span> What is an LFSR (Linear Feedback Shift Register), and why is it used in LBIST?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> An LFSR is a shift register with XOR gates on specific feedback taps. It generates pseudo-random sequences of 1s and 0s. In LBIST, it is used as a PRPG (Pseudo-Random Pattern Generator) to blast random stimulus into the scan chains cheaply and quickly.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q34</span> What is a MISR (Multiple Input Signature Register)?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A component used at the output of LBIST. Instead of checking millions of output bits one-by-one, a MISR mathematically compresses all the captured scan chain outputs into a single, compact 32-bit or 64-bit Hex code called a <strong>Signature</strong>. If the chip is healthy, it outputs the golden signature (e.g., `0xDEADBEEF`). If defective, the signature alters.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q35</span> What is "Aliasing" in a MISR?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Aliasing is the mathematically rare event where a defective chip produces the exact same golden signature as a healthy chip due to the lossy nature of compression. A 32-bit MISR has an aliasing probability of $2^{-32}$, which is so low it is deemed acceptable.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q36</span> Contrast ATPG and LBIST.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> 
+                <br>&bull; <strong>ATPG:</strong> Deterministic. Calculates the exact minimal patterns needed. Achieves ~99.9% coverage. Requires external ATE tester.
+                <br>&bull; <strong>LBIST:</strong> Random. Blasts millions of random patterns. Hard to hit hard-to-reach faults (only achieves ~90% coverage). Runs entirely independently on-chip.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q37</span> What are "Test Points"?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Logic gates (AND/OR) manually inserted by DFT engineers deep inside the RTL to improve controllability or observability of stubborn logic nodes that random LBIST patterns cannot naturally excite.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q38</span> What is Burn-In Testing?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Chips are placed in high-voltage, high-temperature ovens and run continuously for hours. This accelerates "infant mortality" defects (weak gate oxides or partial vias) causing them to fail in the factory rather than in the customer's hands 6 months later.</p>
+            </div>
+        </div>
+
+        <!-- ================= SECTION 5: BOUNDARY SCAN & JTAG ================= -->
+        <h3 class="text-primary border-bottom pb-2 my-4"><i class="fa-solid fa-plug-circle-check me-2"></i>5. Boundary Scan & JTAG (IEEE 1149.1)</h3>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q39</span> What is JTAG (Boundary Scan)?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Joint Test Action Group (IEEE 1149.1). It is an industry-standard serial interface designed to test the physical connectivity of chips mounted on a PCB. It allows testers to manipulate the I/O pins of a chip without physically probing them, solving the problem of testing densely packed BGA (Ball Grid Array) boards.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q40</span> Name the 5 physical pins required for JTAG (The TAP Interface).</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Test Access Port (TAP) pins:
+                <br>1. <strong>TCK:</strong> Test Clock (independent of system clock).
+                <br>2. <strong>TMS:</strong> Test Mode Select (controls the internal state machine).
+                <br>3. <strong>TDI:</strong> Test Data In (serial data to chip).
+                <br>4. <strong>TDO:</strong> Test Data Out (serial data from chip).
+                <br>5. <strong>TRST:</strong> Test Reset (Optional, active low reset for TAP controller).</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q41</span> What is a Boundary Scan Cell (BSC)?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A specialized MUX/Flip-Flop circuit placed directly between the core logic and the physical I/O pad. During normal mode, signals pass through transparently. During JTAG test mode, the BSC intercepts the pin, allowing JTAG to drive a value onto the board or capture a value from the board.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q42</span> How does JTAG test a PCB trace between Chip A and Chip B?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> 
+                <br>1. JTAG commands Chip A's output pin to drive a Logic 1 (using the BSC).
+                <br>2. JTAG commands Chip B's input pin to capture the state of the PCB trace (using its BSC).
+                <br>3. The captured value is shifted out via TDO. If a 1 is read, the solder joint and PCB trace are perfect. If 0 is read, there is a physical open circuit or short to ground on the motherboard.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q43</span> What is the TAP Controller?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A 16-state Finite State Machine inside the JTAG block. It is navigated solely by toggling the <strong>TMS</strong> pin on the rising edge of TCK. It controls whether JTAG is shifting an Instruction or shifting Data.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q44</span> <span class="tricky-badge">Tricky</span> How do you force a JTAG TAP controller into the Reset state if you don't know what state it is currently in?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> The JTAG state machine is mathematically designed so that holding the <strong>TMS pin HIGH (1) for 5 consecutive TCK clock cycles</strong> guarantees the state machine will arrive at the <code>Test-Logic-Reset</code> state, no matter where it started. This makes the TRST pin optional.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q45</span> Explain the BYPASS instruction in JTAG.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> When testing a board with 10 chips connected in a JTAG daisy-chain, you may only want to test Chip 5. The BYPASS instruction routes TDI directly to TDO through a 1-bit shift register for the other 9 chips. This bypasses their massive boundary scan chains, drastically speeding up the shifting process for the target chip.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q46</span> Contrast the EXTEST and INTEST JTAG instructions.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>&bull; <strong>EXTEST:</strong> Boundary scan cells face outward. Used to test external PCB connectivity between chips.
+                <br>&bull; <strong>INTEST:</strong> Boundary scan cells face inward. Used to apply static stimulus to the internal core logic of the chip while isolated from the PCB.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q47</span> What is the IDCODE instruction?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> It reads a hardcoded 32-bit register providing the Manufacturer ID, Part Number, and Silicon Revision. Automated test equipment reads this first to verify the correct chip was soldered onto the board before applying test patterns.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q48</span> Can JTAG be used for anything other than manufacturing tests?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Yes! JTAG has evolved into the universal back-door into a chip. It is heavily used by firmware engineers for <strong>On-Chip Debugging</strong> (e.g., OpenOCD/GDB to halt the CPU, step through C code, and read registers) and for programming Flash memories and FPGAs.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q49</span> What is a BSDL file?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Boundary Scan Description Language. It is a file provided by the chip vendor that describes the exact length and order of the Boundary Scan chain inside the chip. PCB test tools use this file to understand how to shift bits into the JTAG port to manipulate specific physical pins.</p>
+            </div>
+        </div>
+
+        <div class="qa-card border-success border-2">
+            <div class="qa-header bg-success text-white"><span class="q-number bg-dark">Q50</span> The Final Wrap-Up: How are JTAG, ATPG, and BIST connected?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Modern SoCs use <strong>JTAG (IEEE 1149.1/1500)</strong> as the master gateway. A test engineer connects the JTAG cable, which toggles the TAP controller. The TAP controller issues instructions to switch the chip into <strong>Scan Mode</strong> (allowing ATE to run <strong>ATPG</strong> patterns), or it issues an instruction to fire off the <strong>MBIST/LBIST</strong> engines internally, subsequently reading out the pass/fail signatures via TDO. JTAG orchestrates the entire DFT ecosystem.</p>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="bg-dark text-center text-white py-4 mt-5 border-top border-secondary">
+        <p class="mb-0">© 2026 Complete VLSI Interview Handbook. Crafted for silicon engineers.</p>
+    </footer>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
