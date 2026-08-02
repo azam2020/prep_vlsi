@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 4 (Part 2): STA Q&A (50 Questions) - VLSI Handbook</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+
+    <!-- MathJax Configuration -->
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          displayMath: [['$$', '$$'], ['\\[', '\\]']]
+        }
+      };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        .qa-card { background: white; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .qa-header { background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 15px 20px; font-weight: 700; color: #0f172a; border-top-left-radius: 8px; border-top-right-radius: 8px; }
+        .qa-body { padding: 20px; }
+        .q-number { background: #0b3d91; color: white; padding: 3px 10px; border-radius: 4px; font-size: 0.85rem; margin-right: 10px; }
+        .tricky-badge { background: #dc2626; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; float: right; }
+        .concept-box { background-color: #f0fdf4; border-left: 4px solid #16a34a; padding: 12px 15px; margin-top: 15px; border-radius: 0 4px 4px 0; font-size: 0.95rem; }
+        .trap-box { background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 12px 15px; margin-top: 15px; border-radius: 0 4px 4px 0; font-size: 0.95rem; }
+        .equation-box { background: #f8f9fa; padding: 15px; border-radius: 4px; border: 1px solid #dee2e6; text-align: center; font-size: 1.1rem; margin: 15px 0; overflow-x: auto; }
+        .svg-container { background: white; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; text-align: center; margin: 20px 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+    </style>
+</head>
+<body class="bg-light">
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html"><i class="fa-solid fa-microchip me-2"></i>VLSI Handbook</a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="sta_part1.html">Part 1</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="#">STA Q&A (Part 2)</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <header class="bg-dark text-white py-4 mb-4 shadow">
+        <div class="container">
+            <h2>Chapter 4: Static Timing Analysis — Part 2 (Q51 to Q100)</h2>
+            <p class="mb-0 text-info">PVT Corners, Temperature Inversion, OCV/AOCV, CPPR, and Advanced Numericals</p>
+        </div>
+    </header>
+
+    <main class="container my-4">
+
+        <!-- ================= SECTION 6: PVT VARIATIONS & CORNERS ================= -->
+        <h3 class="text-primary border-bottom pb-2 mb-4"><i class="fa-solid fa-layer-group me-2"></i>6. PVT Variations & Operating Corners</h3>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q51</span> What does PVT stand for in VLSI?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> <strong>Process, Voltage, and Temperature</strong>. These are the three physical factors that dramatically affect the delay (speed) of logic gates and wires on a silicon die.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q52</span> Explain Process (P) variation.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> During fabrication, absolute perfection is impossible. Wafer-to-wafer or lot-to-lot variations cause changes in transistor channel lengths ($L$), oxide thickness ($T_{ox}$), and doping concentrations. This causes identical transistors to switch slightly faster or slower than intended.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q53</span> What are the standard Silicon Process Corners?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>&bull; <strong>TT (Typical-Typical):</strong> Nominal NMOS and nominal PMOS.
+                <br>&bull; <strong>SS (Slow-Slow):</strong> Slow NMOS, Slow PMOS (Highest delay, lowest current).
+                <br>&bull; <strong>FF (Fast-Fast):</strong> Fast NMOS, Fast PMOS (Lowest delay, highest leakage).
+                <br>&bull; <strong>FS / SF:</strong> Fast-NMOS/Slow-PMOS and Slow-NMOS/Fast-PMOS (Cross corners).</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q54</span> How does Voltage (V) affect delay?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A lower supply voltage ($V_{DD}$) decreases the overdrive voltage ($V_{GS} - V_{TH}$), which severely reduces the transistor's drive current ($I_D$). Therefore, <strong>lower voltage = slower delay</strong>. Higher voltage = faster delay.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q55</span> In traditional (older) technology nodes, how does Temperature (T) affect delay?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> As temperature increases, the thermal vibrations of the silicon lattice increase. This causes carrier scattering, which reduces electron/hole mobility ($\mu$). Lower mobility means lower drive current. Therefore, <strong>higher temperature = slower delay</strong>.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q56</span> Define the worst-case corner for Setup Time checks.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Setup requires data to arrive as fast as possible. The worst-case is when the data path is extremely slow.
+                <br><strong>Corner:</strong> Slow Process (SS), Low Voltage, High Temperature (usually $125^\circ C$). This is often called the <strong>Worst Case (WC) or Max corner</strong>.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q57</span> Define the worst-case corner for Hold Time checks.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Hold requires data to arrive slowly so it doesn't corrupt the current capture. The worst-case is when the data path is terrifyingly fast.
+                <br><strong>Corner:</strong> Fast Process (FF), High Voltage, Low Temperature (usually $-40^\circ C$). This is called the <strong>Best Case (BC) or Min corner</strong>.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q58</span> What is an RC Interconnect Corner?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Just like transistors, the metal wires (interconnects) have variations in thickness and width due to etching/CMP processes, affecting Resistance (R) and Capacitance (C).
+                <br>&bull; <strong>Cmax / Cworst:</strong> Max capacitance, lowest resistance. (Used for Max delay).
+                <br>&bull; <strong>Cmin / Cbest:</strong> Min capacitance, highest resistance. (Used for Min delay).
+                <br>&bull; <strong>RCworst:</strong> Max resistance, max capacitance.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q59</span> What is MMMC (Multi-Mode Multi-Corner) analysis?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Modern SoCs operate in different modes (e.g., Sleep mode, High-Performance mode, Test mode) and must survive across all corners (SS, FF, TT). MMMC is the automated STA process of analyzing all combinations of Modes and Corners simultaneously to ensure zero timing violations anywhere.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q60</span> When do FS (Fast-Slow) or SF (Slow-Fast) process corners cause the most damage?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> These cross corners severely affect <strong>Noise Margins</strong> and <strong>Duty Cycle</strong>. For example, in an SF corner (Slow NMOS, Fast PMOS), the rise time is extremely fast, but the fall time is sluggish. This skews the Switching Threshold ($V_M$) high, making the inverter vulnerable to ground bounce (logic 0 noise).</p>
+            </div>
+        </div>
+
+
+        <!-- ================= SECTION 7: TEMPERATURE INVERSION ================= -->
+        <h3 class="text-primary border-bottom pb-2 my-4"><i class="fa-solid fa-temperature-half me-2"></i>7. Temperature Inversion (Sub-micron Phenomena)</h3>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q61</span> What is Temperature Inversion?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> In advanced technology nodes (e.g., sub-65nm) operating at very low supply voltages, the traditional rule of "High Temp = Slower" flips. Instead, <strong>Low Temperature results in Slower delay</strong>, and High Temperature results in Faster delay. This reversal is called Temperature Inversion.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q62</span> What is the physical physics mechanism driving Temperature Inversion?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Transistor current depends on two factors that react oppositely to temperature:
+                <br>1. <strong>Mobility ($\mu$):</strong> Decreases at high temp (makes gate slower).
+                <br>2. <strong>Threshold Voltage ($V_{TH}$):</strong> Decreases at high temp (makes gate faster).
+                <br>At ultra-low $V_{DD}$ (e.g., 0.7V), the overdrive voltage ($V_{DD} - V_{TH}$) is extremely tiny. At low temperatures, $V_{TH}$ increases so much that the gate barely turns on. This loss of overdrive dominates over the mobility gain, crippling the current and making the gate severely slow at cold temperatures.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q63</span> How does Temperature Inversion change Setup Time STA checks?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> You can no longer assume $125^\circ C$ is the worst-case corner for Setup. You must perform Setup checks at BOTH $125^\circ C$ (traditional max) AND $-40^\circ C$ (inversion max) to guarantee the chip won't fail at extreme cold.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q64</span> What is the "Inversion Temperature"?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> The exact temperature threshold where the mobility dominance (traditional curve) and $V_{TH}$ dominance (inversion curve) intersect. Below this temperature, the delay curve inverts and goes up.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q65</span> <span class="tricky-badge">Tricky</span> Does Temperature Inversion affect metal interconnect (wire) delay?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> <strong>NO.</strong> Wires are pure conductors. As temperature drops, metal resistance drops linearly. Wires are ALWAYS faster at low temperatures. Temperature Inversion is strictly a <strong>transistor (silicon) phenomenon</strong>.</p>
+                <div class="trap-box">
+                    <strong>Trap Used:</strong> If a timing path is heavily dominated by wire RC delay rather than gate delay, the path might still follow traditional scaling (slower at high temp). This is why multi-corner analysis is mandatory.
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ================= SECTION 8: OCV, AOCV, POCV & CPPR ================= -->
+        <h3 class="text-primary border-bottom pb-2 my-4"><i class="fa-solid fa-magnifying-glass-chart me-2"></i>8. On-Chip Variation (OCV, AOCV, CPPR)</h3>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q66</span> What is On-Chip Variation (OCV)?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Even on the exact same silicon die, operating at the exact same global PVT corner, two identical transistors placed millimeters apart will have slightly different delays. This is due to local micro-variations in etching, local hot-spots (temperature gradients), and IR drop. OCV models this local unpredictability.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q67</span> How is Flat OCV applied to a Setup Time check?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> OCV intentionally penalizes the math to make the check harder to pass (pessimism).
+                <br>&bull; We assume the <strong>Data Path</strong> and Launch Clock are arbitrarily SLOW (apply a `late` derate factor, e.g., $\times 1.1$).
+                <br>&bull; We assume the <strong>Capture Clock</strong> path is arbitrarily FAST (apply an `early` derate factor, e.g., $\times 0.9$).</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q68</span> How is Flat OCV applied to a Hold Time check?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> 
+                <br>&bull; We assume the <strong>Data Path</strong> and Launch Clock are arbitrarily FAST (`early` derate, e.g., $\times 0.9$).
+                <br>&bull; We assume the <strong>Capture Clock</strong> path is arbitrarily SLOW (`late` derate, e.g., $\times 1.1$).</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q69</span> What is the fatal flaw with "Flat OCV" in modern technology nodes?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Flat OCV applies a blanket multiplier (like 10% penalty) to every single gate regardless of the path length. In reality, random variations statistically cancel each other out over long paths (Law of Large Numbers). Flat OCV is too pessimistic, forcing tools to over-optimize and waste massive area/power fixing phantom violations.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q70</span> What is AOCV (Advanced OCV)?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> AOCV uses 2D look-up tables based on <strong>Logic Depth</strong> and <strong>Physical Distance</strong>. A very deep logic path (e.g., 20 gates) will receive a much smaller derating penalty (e.g., 2%) than a shallow path (e.g., 2 gates, 12% penalty) because random variations average out over depth.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q71</span> What is POCV (Parametric OCV) or SOCV (Statistical OCV)?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> At 7nm and below, even AOCV is too inaccurate. POCV stops using absolute min/max multipliers. Instead, it models the delay of every single cell as a statistical Gaussian distribution ($\mu, \sigma$). The delay of a path is calculated statistically as $D = \mu + c \cdot \sigma$ (where $c$ is typically 3 for $3\sigma$ confidence).</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q72</span> What is LVF (Liberty Variance Format)?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> It is an extension to the standard Liberty (`.lib`) timing file format. Standard `.lib` contains fixed delay values ($T_{cq}, T_{pd}$). LVF files contain the standard deviation ($\sigma$) values required by STA tools to calculate POCV statistical timing.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q73</span> What is CPPR (Clock Path Pessimism Removal) or CRPR (Clock Reconvergence Pessimism Removal)?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> When applying OCV, we make the launch clock path SLOW and the capture clock path FAST. However, the launch and capture clocks share the same physical buffers at the root of the clock tree before diverging. <strong>A single physical buffer cannot be fast and slow at the exact same time.</strong> CPPR calculates the artificial penalty applied to this common path and mathematically adds it back to the slack to remove the false pessimism.</p>
+            </div>
+        </div>
+
+        <!-- SVG DIAGRAM: CPPR -->
+        <div class="svg-container">
+            <h5 class="text-dark mb-3">Clock Path Pessimism Removal (CPPR)</h5>
+            <svg width="600" height="220" viewBox="0 0 600 220">
+                <!-- Clock Source -->
+                <rect x="20" y="90" width="60" height="40" fill="#f8f9fa" stroke="#333" stroke-width="2"/>
+                <text x="35" y="115" font-weight="bold">PLL</text>
+
+                <!-- Common Buffer -->
+                <polygon points="150,80 190,110 150,140" fill="#fff3e0" stroke="#e65100" stroke-width="2"/>
+                <text x="135" y="70" font-weight="bold" fill="#e65100">Common Buffer (Cb)</text>
+                
+                <!-- Divergence Point -->
+                <circle cx="220" cy="110" r="5" fill="black"/>
+                <text x="210" y="130" font-size="12" font-style="italic">Divergence Node</text>
+
+                <!-- Launch / Capture Buffers -->
+                <polygon points="300,30 340,60 300,90" fill="#e3f2fd" stroke="#0d47a1" stroke-width="2"/>
+                <text x="310" y="20" font-size="12">Launch (B1)</text>
+
+                <polygon points="300,130 340,160 300,190" fill="#e8f5e9" stroke="#1b5e20" stroke-width="2"/>
+                <text x="310" y="210" font-size="12">Capture (B2)</text>
+
+                <!-- Flip Flops -->
+                <rect x="420" y="25" width="50" height="70" fill="white" stroke="black" stroke-width="2"/>
+                <text x="430" y="45" font-weight="bold">FF1</text>
+
+                <rect x="520" y="125" width="50" height="70" fill="white" stroke="black" stroke-width="2"/>
+                <text x="530" y="145" font-weight="bold">FF2</text>
+
+                <!-- Wires -->
+                <line x1="80" y1="110" x2="150" y2="110" stroke="black" stroke-width="2"/>
+                <line x1="190" y1="110" x2="220" y2="110" stroke="#e65100" stroke-width="3"/>
+                <path d="M 220 110 L 220 60 L 300 60" fill="none" stroke="black" stroke-width="2"/>
+                <path d="M 220 110 L 220 160 L 300 160" fill="none" stroke="black" stroke-width="2"/>
+                <line x1="340" y1="60" x2="420" y2="60" stroke="black" stroke-width="2"/>
+                <line x1="340" y1="160" x2="520" y2="160" stroke="black" stroke-width="2"/>
+                
+                <!-- Data Path -->
+                <path d="M 470 60 L 495 60 L 495 160 L 520 160" fill="none" stroke="purple" stroke-width="2" stroke-dasharray="4"/>
+                <text x="480" y="110" font-size="12" fill="purple">Data</text>
+            </svg>
+            <p class="mt-2 small text-muted">For Setup OCV, Cb is calculated as SLOW for Launch and FAST for Capture. CPPR fixes this impossible paradox.</p>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q74</span> Write the equation to calculate the CPPR adjustment value.</div>
+            <div class="qa-body">
+                <div class="equation-box">
+                    $CPPR_{setup} = Common\_Delay_{Late} - Common\_Delay_{Early}$
+                </div>
+                <p>This positive value is <strong>added</strong> directly to the Setup Slack to improve the margin.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q75</span> <span class="tricky-badge">Tricky</span> Does CPPR apply to the Data Path?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> <strong>NO.</strong> The data path does not diverge and reconverge with itself. CPPR only applies to the Clock Tree, specifically the common segment from the clock root (PLL) down to the divergence node where it splits to the launch and capture flip-flops.</p>
+            </div>
+        </div>
+
+
+        <!-- ================= SECTION 9: ADVANCED NUMERICALS & FIXES ================= -->
+        <h3 class="text-primary border-bottom pb-2 my-4"><i class="fa-solid fa-calculator me-2"></i>9. Advanced Interview Numericals</h3>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q76</span> <span class="tricky-badge">Numerical</span> Calculate Setup Slack with OCV.<br>
+            Given: $T_{clk} = 10ns$, $T_{su} = 1ns$, $T_{cq(max)} = 2ns$, $T_{comb(max)} = 5ns$.<br>
+            Launch clock path delay = $3ns$. Capture clock path delay = $3ns$.<br>
+            OCV Derate Factors: Late = $1.2$, Early = $0.9$. (Ignore CPPR for now).</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>1. <strong>Arrival Time (Late):</strong> 
+                <br>Launch Clock (Late) = $3ns \times 1.2 = 3.6ns$
+                <br>Data Path (Late) = $(T_{cq} + T_{comb}) \times 1.2 = (2 + 5) \times 1.2 = 8.4ns$
+                <br>Total Arrival Time = $3.6 + 8.4 = 12.0ns$
+                <br>
+                <br>2. <strong>Required Time (Early):</strong>
+                <br>Capture Clock (Early) = $(T_{clk} + Path\_Delay) \times 0.9 = (10 + 3) \times 0.9 = 11.7ns$
+                <br>Required Time = Capture Clock - $T_{su} = 11.7 - 1.0 = 10.7ns$
+                <br>
+                <br>3. <strong>Setup Slack:</strong> Required - Arrival = $10.7 - 12.0 = \mathbf{-1.3ns}$ (Violation!)</p>
+                <div class="trap-box">
+                    <strong>Note:</strong> Without OCV, the slack was $(10 + 3 - 1) - (3 + 2 + 5) = 12 - 10 = +2ns$. OCV flipped a passing path into a failing path!
+                </div>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q77</span> <span class="tricky-badge">Numerical</span> Calculate CPPR for the previous question. Assume the common clock path delay (before divergence) is $2ns$ (nominal).</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>Common path nominal = $2ns$.
+                <br>Common path Late evaluated = $2ns \times 1.2 = 2.4ns$
+                <br>Common path Early evaluated = $2ns \times 0.9 = 1.8ns$
+                <br>CPPR Credit = $2.4ns - 1.8ns = \mathbf{0.6ns}$.
+                <br>New Setup Slack = $-1.3ns + 0.6ns = \mathbf{-0.7ns}$. (Still failing, but less pessimistic).</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q78</span> <span class="tricky-badge">Numerical</span> Calculate Hold Slack with OCV.<br>
+            Given: $T_h = 0.5ns$, $T_{cq(min)} = 1.5ns$, $T_{comb(min)} = 1.0ns$.<br>
+            Launch clock delay = $2ns$, Capture clock delay = $2ns$.<br>
+            OCV Derates: Late = $1.2$, Early = $0.9$.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> For Hold, Data is FAST (Early), Capture Clock is SLOW (Late).
+                <br>1. <strong>Arrival Time (Early):</strong>
+                <br>Launch Clock = $2ns \times 0.9 = 1.8ns$
+                <br>Data Path = $(1.5 + 1.0) \times 0.9 = 2.25ns$
+                <br>Total Arrival Time = $1.8 + 2.25 = \mathbf{4.05ns}$
+                <br>
+                <br>2. <strong>Required Time (Late):</strong>
+                <br>Capture Clock = $2ns \times 1.2 = 2.4ns$
+                <br>Required Time = Capture Clock + $T_h = 2.4 + 0.5 = \mathbf{2.9ns}$
+                <br>
+                <br>3. <strong>Hold Slack:</strong> Arrival - Required = $4.05 - 2.9 = \mathbf{+1.15ns}$ (Pass).</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q79</span> How do you fix the $-0.7ns$ Setup violation from Q77 without changing the clock frequency?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Use <strong>Useful Skew</strong>. If we intentionally add $0.7ns$ of buffer delay to the non-common segment of the <em>Capture Clock</em> path, the Required Time shifts out by $0.7ns$ (adjusting for OCV derate), closing the negative slack to exactly $0ns$.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q80</span> <span class="tricky-badge">Numerical</span> A FF has $T_{cq} = 2ns, T_{su} = 1ns, T_{comb} = 5ns$. There is $0.5ns$ of Clock Jitter. Find $F_{max}$.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>$T_{clk} \ge T_{cq} + T_{comb} + T_{su} + T_{jitter}$
+                <br>$T_{clk} \ge 2 + 5 + 1 + 0.5 = 8.5ns$
+                <br>$F_{max} = 1 / 8.5ns \approx \mathbf{117.6 \text{ MHz}}$</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q81</span> What is Time Borrowing in Latch-based designs?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Unlike an edge-triggered FF, a level-sensitive latch is transparent for an entire clock phase (e.g., $CLK=1$). If the combinational logic driving the latch is slightly too slow and arrives <em>after</em> the rising edge, it can just "borrow" time from the high phase. The signal passes through immediately, eating into the time budget of the <em>next</em> logic stage.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q82</span> <span class="tricky-badge">Numerical</span> Latch 1 and Latch 2 are transparent high. Duty cycle is 50%. $T_{clk} = 10ns$. Logic between them takes $6ns$. How much time is borrowed?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> The time available before the rising edge of L2 is $T_{clk}/2 = 5ns$.
+                <br>Since the logic takes $6ns$, the data arrives $1ns$ <em>after</em> L2 opens.
+                <br>Because L2 is transparent high (from $5ns$ to $10ns$), the data safely passes through. 
+                <br><strong>Time Borrowed = $1ns$.</strong> The logic stage <em>after</em> L2 now only has $4ns$ left to complete its work instead of $5ns$.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q83</span> Why do we use Flip-Flops in standard SoCs if Latches allow Time Borrowing?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> 
+                <br>1. <strong>Hold Time Nightmares:</strong> If logic between latches is too fast, data shoots straight through both latches while they are transparent, causing catastrophic race conditions.
+                <br>2. <strong>Tool Complexity:</strong> Standard STA tools easily analyze rigid edge-to-edge paths. Analyzing fluid time-borrowing across millions of latches is computationally immense.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q84</span> What is a "Half-Cycle Path", and when does it occur?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> It occurs when a Launch FF is triggered on the <em>Rising Edge</em>, and the Capture FF is triggered on the <em>Falling Edge</em> of the same clock. The data only has $T_{clk}/2$ to travel. It severely tightens the Setup check, but naturally provides immense Hold time margin.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q85</span> How do you constraint an asynchronous clock crossing in your SDC (Synopsys Design Constraints) file?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> You must declare them as asynchronous or false paths so the STA tool doesn't try to mathematically meet setup/hold between them.
+                <pre class="v-code">set_clock_groups -asynchronous -group {clk_A} -group {clk_B}</pre></p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q86</span> What is the difference between `set_false_path` and `set_clock_groups`?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> 
+                <br>&bull; <code>set_false_path</code>: Disables timing checks on specific topological paths (e.g., from a specific register to an output).
+                <br>&bull; <code>set_clock_groups</code>: Globally tells the tool that two entire clock domains have no phase relationship, disabling all checks between every register in domain A and domain B simultaneously.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q87</span> Define "Virtual Clock" in STA.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A clock defined in the SDC file that does <em>not</em> exist as a physical pin on the chip. It is used as a reference to constrain the timing of input/output ports relative to the external board-level components.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q88</span> What does `set_input_delay` actually constrain?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> It tells the STA tool how much time was <em>already consumed</em> by external logic on the PCB before the signal reached the chip's input port. 
+                <br>If $T_{clk} = 10ns$ and `set_input_delay = 4ns`, the internal chip logic only has $6ns$ left to capture the data.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q89</span> What does `set_output_delay` constrain?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> It tells the STA tool how much setup time the external PCB logic requires <em>after</em> the signal leaves the chip. 
+                <br>If $T_{clk} = 10ns$ and `set_output_delay = 3ns`, the internal chip logic must push the data to the output pad within $7ns$.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q90</span> What is an unconstrained path, and why is it dangerous?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A path that has no clock or external delay definitions applied to it. The synthesis tool optimizes unconstrained paths for zero area (using the slowest, smallest gates possible). If that path was actually functionally critical, the chip will fail. The rule is: <strong>100% of I/O ports must be constrained.</strong></p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q91</span> What is `set_max_delay` used for?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> It explicitly forces the tool to limit the propagation delay of a path to a specific absolute time, regardless of the clock period. Often used for combinational In-to-Out paths or asynchronous crossings.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q92</span> <span class="tricky-badge">Tricky</span> If you have a Hold violation of $-0.2ns$, and you insert a delay buffer of $0.3ns$ to fix it, what happens to your Setup Slack?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Your Setup Slack degrades by exactly $0.3ns$. Adding delay to the data path helps Hold but directly hurts Setup. You must ensure you have at least $+0.3ns$ of positive Setup margin before inserting that buffer!</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q93</span> Why do we perform "Crosstalk Timing Analysis" (Delta Delay)?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Wires routed parallel to each other have parasitic coupling capacitance. If an "Aggressor" wire transitions from 0-to-1 at the exact same time a "Victim" wire transitions from 1-to-0, the crosstalk fights the transition, slowing the victim down (Setup penalty). If they transition in the same direction, the victim speeds up (Hold penalty).</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q94</span> What is Signal Integrity (SI) - Glitch Analysis?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> If the Victim wire is completely static (holding logic 0) and a massive Aggressor wire switches, it can inject a voltage spike (glitch) onto the Victim. If that glitch exceeds $V_{IH}$ of the receiving gate, it causes a false logical transition.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q95</span> How do you fix a Crosstalk/SI violation in Physical Design?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>1. <strong>Spacing:</strong> Physically move the wires further apart (Capacitance $\propto 1/distance$).
+                <br>2. <strong>Shielding:</strong> Route a grounded $V_{SS}$ wire between the Aggressor and Victim.
+                <br>3. <strong>Upsizing:</strong> Increase the drive strength of the Victim gate so it holds its state more rigidly against the noise.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q96</span> What is the "Derating Factor" applied during Crosstalk Delay analysis?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> To account for the worst-case timing window alignment (where Aggressor and Victim switch simultaneously), tools apply an SI derating multiplier to the coupling capacitance, effectively assuming $C_{eff} = 2 \times C_{coupling}$ for opposing transitions.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q97</span> What is a "Timing Exception"?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Any SDC constraint that overrides the default single-cycle STA behavior. Examples include False Paths, Multi-Cycle Paths (MCP), Min/Max Delays, and Clock Groups.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q98</span> What happens if you define a path as BOTH a Multi-Cycle Path and a False Path?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> <strong>False Path wins.</strong> SDC constraints have a strict priority hierarchy. False Path is the highest priority exception. The tool will completely ignore the MCP constraint and cease analyzing the path.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q99</span> In PrimeTime, what does the command `report_timing` output?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> It generates a detailed timing report showing the Worst Negative Slack (WNS). It lists the startpoint, endpoint, path group, required time, arrival time, and a node-by-node breakdown of incremental delays (cell delay + net delay) along the critical path.</p>
+            </div>
+        </div>
+
+        <div class="qa-card border-success border-2">
+            <div class="qa-header bg-success text-white"><span class="q-number bg-dark">Q100</span> The Final Test: What are WNS and TNS?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>&bull; <strong>WNS (Worst Negative Slack):</strong> The slack of the single worst failing path in the entire chip. Determines if the chip meets the target frequency.
+                <br>&bull; <strong>TNS (Total Negative Slack):</strong> The mathematical sum of the negative slack from <em>all</em> failing endpoints. It tells you how fundamentally broken the design is. (e.g., A WNS of -10ps is bad, but a TNS of -50000ps means thousands of paths are failing, requiring a massive re-design).</p>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="bg-dark text-center text-white py-4 mt-5 border-top border-secondary">
+        <p class="mb-0">© 2026 Complete VLSI Interview Handbook. Crafted for silicon engineers.</p>
+    </footer>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
