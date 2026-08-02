@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 2 (Part 2): Verilog Q&A (50 Questions) - VLSI Handbook</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        .qa-card { background: white; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .qa-header { background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 15px 20px; font-weight: 700; color: #0f172a; border-top-left-radius: 8px; border-top-right-radius: 8px; }
+        .qa-body { padding: 20px; }
+        .q-number { background: #0b3d91; color: white; padding: 3px 10px; border-radius: 4px; font-size: 0.85rem; margin-right: 10px; }
+        .tricky-badge { background: #dc2626; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; float: right; }
+        .concept-box { background-color: #f0fdf4; border-left: 4px solid #16a34a; padding: 12px 15px; margin-top: 15px; border-radius: 0 4px 4px 0; font-size: 0.95rem; }
+        .trap-box { background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 12px 15px; margin-top: 15px; border-radius: 0 4px 4px 0; font-size: 0.95rem; }
+        pre.v-code { background: #1e293b; color: #f8fafc; padding: 15px; border-radius: 6px; font-size: 0.9rem; margin: 10px 0; }
+    </style>
+</head>
+<body class="bg-light">
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html"><i class="fa-solid fa-microchip me-2"></i>VLSI Handbook</a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="verilog_part1.html">Part 1</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="#">Verilog Q&A (Part 2)</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <header class="bg-dark text-white py-4 mb-4 shadow">
+        <div class="container">
+            <h2>Chapter 2: Verilog HDL — Part 2 (Q51 to Q100)</h2>
+            <p class="mb-0 text-info">Procedural Blocks, Blocking vs Non-Blocking, Latch Inferencing, and Synthesis Hazards</p>
+        </div>
+    </header>
+
+    <main class="container my-4">
+
+        <!-- ================= SECTION 5: PROCEDURAL BLOCKS ================= -->
+        <h3 class="text-primary border-bottom pb-2 mb-4"><i class="fa-solid fa-code-branch me-2"></i>5. Procedural Blocks & Sensitivity Lists</h3>
+
+        <!-- Q51 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q51</span> What are the two primary procedural blocks in Verilog, and how do they differ in execution?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> 
+                <br>&bull; <code>initial</code>: Executes exactly once starting at simulation time 0. Used strictly for testbenches and initialization.
+                <br>&bull; <code>always</code>: Executes repeatedly in an infinite loop, triggered by the conditions in its sensitivity list. Used to model actual hardware (both combinational and sequential).</p>
+            </div>
+        </div>
+
+        <!-- Q52 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q52</span> Are <code>initial</code> blocks synthesizable?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Generally, <strong>NO</strong> for ASICs. ASIC synthesis tools completely ignore <code>initial</code> blocks. However, for <strong>FPGAs</strong> (like Xilinx/Intel), <code>initial</code> blocks <em>are</em> synthesizable and are used to set the power-on values of SRAMs (BRAMs) and Flip-Flops in the bitstream.</p>
+            </div>
+        </div>
+
+        <!-- Q53 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q53</span> What is the difference between <code>always @(a, b)</code> and <code>always @(*)</code>?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Both model combinational logic. <code>always @(a, b)</code> explicitly lists the signals that trigger the block. <code>always @(*)</code> implicitly includes ALL signals read inside the block on the RHS into the sensitivity list automatically. <code>@(*)</code> is the Verilog-2001 standard to prevent missing signals.</p>
+            </div>
+        </div>
+
+        <!-- Q54 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q54</span> <span class="tricky-badge">Tricky</span> What happens if you miss a signal in the sensitivity list? E.g., <code>always @(a) out = a & b;</code></div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> It creates a catastrophic <strong>Simulation-Synthesis Mismatch</strong>. 
+                <br>&bull; <strong>Simulation:</strong> The output will ONLY update when <code>a</code> changes. If <code>b</code> changes while <code>a</code> is stable, the output will improperly hold its old value (acting like a latch).
+                <br>&bull; <strong>Synthesis:</strong> The synthesis tool ignores the incomplete list and builds a perfect combinational AND gate anyway. Your silicon will not match your testbench!</p>
+            </div>
+        </div>
+
+        <!-- Q55 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q55</span> Can you use an edge-trigger and a level-trigger in the same sensitivity list? E.g., <code>always @(posedge clk or a)</code></div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> <strong>NO.</strong> This is illegal for synthesis. A physical hardware element is either edge-triggered (Flip-Flop) or level-sensitive (Latch/Combinational logic). You cannot mix them.</p>
+            </div>
+        </div>
+
+        <!-- Q56 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q56</span> Write the standard Verilog template for a D-Flip-Flop with an Asynchronous Active-Low Reset.</div>
+            <div class="qa-body">
+                <pre class="v-code">always @(posedge clk or negedge rst_n) begin
+    if (!rst_n)
+        q &lt;= 1'b0;
+    else
+        q &lt;= d;
+end</pre>
+            </div>
+        </div>
+
+        <!-- Q57 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q57</span> <span class="tricky-badge">Tricky</span> Write the standard Verilog template for a D-Flip-Flop with a Synchronous Active-Low Reset. Notice the difference!</div>
+            <div class="qa-body">
+                <pre class="v-code">always @(posedge clk) begin // rst_n removed from sensitivity list!
+    if (!rst_n)
+        q &lt;= 1'b0;
+    else
+        q &lt;= d;
+end</pre>
+                <div class="concept-box">
+                    <strong>Concept:</strong> For a synchronous reset, the reset signal is just another data input. It only gets evaluated when the clock edge rises, hence it must NOT be in the sensitivity list.
+                </div>
+            </div>
+        </div>
+
+        <!-- Q58 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q58</span> Why does the industry overwhelmingly prefer Active-Low resets (<code>rst_n</code>) over Active-High resets?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Power-up stability. During device power-up, voltage levels ramp up slowly. A logic '0' (GND) is a stronger, more stable physical signal than a floating/ramping VDD. Pulling the reset to ground during power-up ensures the chip stays safely locked in reset until the power supply is completely stable.</p>
+            </div>
+        </div>
+
+        <!-- Q59 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q59</span> Can a single <code>reg</code> variable be driven by multiple <code>always</code> blocks?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> <strong>NO.</strong> This is a "Multiple Driver" error. If two <code>always</code> blocks assign values to the same <code>reg</code>, it creates a race condition in simulation (yielding <code>X</code>) and is totally un-synthesizable because you are physically short-circuiting two different gate outputs together.</p>
+            </div>
+        </div>
+
+        <!-- Q60 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q60</span> What is the difference between <code>begin...end</code> and <code>fork...join</code> inside an <code>initial</code> block?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> 
+                <br>&bull; <code>begin...end</code>: Statements execute <strong>sequentially</strong>. Delay times accumulate.
+                <br>&bull; <code>fork...join</code>: Statements execute <strong>concurrently</strong> (in parallel). Delay times are absolute from the start of the block.</p>
+            </div>
+        </div>
+
+        <!-- Q61 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q61</span> What happens if you nest an <code>always</code> block inside another <code>always</code> block?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> It is illegal syntax. Procedural blocks cannot be nested in Verilog.</p>
+            </div>
+        </div>
+
+        <!-- Q62 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q62</span> How do you generate a 100MHz clock in a Verilog testbench?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> 100MHz = 10ns period. So toggle every 5ns.</p>
+                <pre class="v-code">reg clk;
+initial clk = 0;
+always #5 clk = ~clk;</pre>
+            </div>
+        </div>
+
+
+        <!-- ================= SECTION 6: BLOCKING VS NON-BLOCKING MASTERCLASS ================= -->
+        <h3 class="text-primary border-bottom pb-2 my-4"><i class="fa-solid fa-code-compare me-2"></i>6. Blocking vs Non-Blocking Assignments (The Masterclass)</h3>
+
+        <!-- Q63 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q63</span> What is the Golden Rule of Verilog Assignments?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> 
+                <br>1. ALWAYS use Blocking (<code>=</code>) for Combinational logic (<code>always @(*)</code>).
+                <br>2. ALWAYS use Non-Blocking (<code>&lt;=</code>) for Sequential logic (<code>always @(posedge clk)</code>).
+                <br>3. NEVER mix both in the same <code>always</code> block.</p>
+            </div>
+        </div>
+
+        <!-- Q64 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q64</span> How exactly does a Blocking Assignment (<code>=</code>) execute?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> It evaluates the RHS and updates the LHS immediately in the <strong>Active Region</strong>. It "blocks" the execution of the next line of code in the <code>begin...end</code> block until the current line is fully completed and assigned.</p>
+            </div>
+        </div>
+
+        <!-- Q65 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q65</span> How exactly does a Non-Blocking Assignment (<code>&lt;=</code>) execute?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> It evaluates the RHS in the <strong>Active Region</strong>, but defers the update of the LHS until the <strong>NBA Region</strong>. It does <em>not</em> block the execution of the next line; the simulator moves to the next line immediately using the "old" values of the variables.</p>
+            </div>
+        </div>
+
+        <!-- Q66 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q66</span> <span class="tricky-badge">Tricky Whiteboard Q</span> What hardware is generated by this code? Is it a shift register?
+            <pre class="v-code">always @(posedge clk) begin
+    q1 = d;
+    q2 = q1;
+    q3 = q2;
+end</pre></div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> <strong>NO.</strong> It generates exactly ONE Flip-Flop. Because blocking assignments update immediately, `q1` gets `d`. On the next line, `q2` gets the *new* value of `q1` (which is `d`). `q3` gets the *new* value of `q2` (which is `d`). At the end of the block, `q1`, `q2`, and `q3` all output the exact same signal `d` simultaneously.</p>
+                <div class="trap-box">
+                    <strong>Trap Used:</strong> Using `=` in sequential blocks collapses cascaded logic.
+                </div>
+            </div>
+        </div>
+
+        <!-- Q67 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q67</span> How do you correctly write a 3-stage Shift Register?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Use Non-Blocking assignments.</p>
+                <pre class="v-code">always @(posedge clk) begin
+    q1 &lt;= d;
+    q2 &lt;= q1;
+    q3 &lt;= q2;
+end</pre>
+                <p>Because LHS updates are deferred, `q2` samples the *old* value of `q1`, creating actual hardware stages (3 Flip-Flops connected in series).</p>
+            </div>
+        </div>
+
+        <!-- Q68 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q68</span> <span class="tricky-badge">Tricky</span> Predict the output of <code>a</code> and <code>b</code> after one clock edge. Initial values: a=10, b=20.
+            <pre class="v-code">always @(posedge clk) begin
+    a = b;
+    b = a;
+end</pre></div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> <code>a = 20</code>, <code>b = 20</code>. The first line executes and assigns 20 to <code>a</code> immediately. The second line executes, sees <code>a</code> is now 20, and assigns 20 to <code>b</code>.</p>
+            </div>
+        </div>
+
+        <!-- Q69 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q69</span> Predict the output of <code>a</code> and <code>b</code> after one clock edge. Initial values: a=10, b=20.
+            <pre class="v-code">always @(posedge clk) begin
+    a &lt;= b;
+    b &lt;= a;
+end</pre></div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> <code>a = 20</code>, <code>b = 10</code>. The RHS is evaluated for both lines based on old values. Then both are updated simultaneously. This safely swaps the values.</p>
+            </div>
+        </div>
+
+        <!-- Q70 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q70</span> What happens if you use Non-Blocking (<code>&lt;=</code>) in combinational logic? <code>always @(*) begin a &lt;= b & c; end</code></div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> It will simulate with a one-delta-cycle delay. If you cascade multiple combinational blocks using `<=`, the logic evaluation will require multiple delta cycles to propagate, severely degrading simulator performance. However, synthesis tools will usually synthesize it correctly as combinational logic anyway. (Still, it is terrible practice).</p>
+            </div>
+        </div>
+
+        <!-- Q71 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q71</span> Can you assign the same variable multiple times in a single <code>always @(posedge clk)</code> block using <code>&lt;=</code>?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Yes. If a variable is assigned multiple times via Non-Blocking assignments in the same block, the <strong>LAST</strong> assignment textually encountered is the one that takes effect (last write wins).</p>
+            </div>
+        </div>
+
+        <!-- Q72 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q72</span> What is the difference between Inter-assignment delay and Intra-assignment delay?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>&bull; <strong>Inter-assignment:</strong> <code>#5 a = b;</code> (Waits 5 time units, then evaluates and assigns. Used for behavioral modeling).
+                <br>&bull; <strong>Intra-assignment:</strong> <code>a = #5 b;</code> (Evaluates <code>b</code> NOW, waits 5 time units, then updates <code>a</code>. Used to model hardware transport delay / propagation delay).</p>
+            </div>
+        </div>
+
+        <!-- Q73 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q73</span> True or False: Blocking assignments evaluate in the Active Region, but update in the Inactive Region.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> <strong>False.</strong> Blocking assignments both evaluate and update in the Active Region immediately.</p>
+            </div>
+        </div>
+
+        <!-- Q74 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q74</span> Why does mixing <code>=</code> and <code>&lt;=</code> in the same block cause simulation-synthesis mismatches?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Synthesis tools rely on standard templates. Mixing them confuses the inference engine (should it build a FF or feed a wire immediately to the next gate?). Simulation will track the event queue perfectly, but synthesis may generate unpredictable logic, leading to total mismatch.</p>
+            </div>
+        </div>
+
+        <!-- Q75 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q75</span> <span class="tricky-badge">Tricky</span> Predict the final value of `a` in this testbench block:
+            <pre class="v-code">initial begin
+    a = 1;
+    a &lt;= 2;
+    a = 3;
+end</pre></div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> <code>a = 2</code>.</p>
+                <div class="concept-box">
+                    <strong>Concept:</strong> 
+                    1. <code>a = 1</code> executes in Active region.
+                    2. <code>a &lt;= 2</code> evaluates in Active, schedules 2 to NBA region.
+                    3. <code>a = 3</code> executes in Active region. (a is currently 3).
+                    4. Active region empties. Simulator moves to NBA region.
+                    5. NBA updates `a` with the scheduled `2`. Final value is 2.
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ================= SECTION 7: LATCH INFERENCING & SYNTHESIS ================= -->
+        <h3 class="text-primary border-bottom pb-2 my-4"><i class="fa-solid fa-triangle-exclamation me-2"></i>7. Latch Inferencing & Synthesis Hazards</h3>
+
+        <!-- Q76 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q76</span> What does it mean to "infer a latch" in synthesis?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> When you write combinational logic (<code>always @(*)</code>) but fail to specify an output for every possible input condition, the synthesis tool assumes the output must hold its previous value. Because it is not clock-edge triggered, the tool inserts a physical Level-Sensitive Latch to hold that state.</p>
+            </div>
+        </div>
+
+        <!-- Q77 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q77</span> Why are accidentally inferred latches dangerous for ASIC design?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> 
+                <br>1. They break Static Timing Analysis (STA) tools by introducing time-borrowing and combinational loops.
+                <br>2. They consume extra silicon area and power compared to standard logic gates.
+                <br>3. They are highly susceptible to glitches (if the enable signal glitches, the latch catches corrupted data).</p>
+            </div>
+        </div>
+
+        <!-- Q78 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q78</span> Spot the bug in this code. What will synthesize?
+            <pre class="v-code">always @(*) begin
+    if (en)
+        y = a;
+end</pre></div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> It infers a Latch. The code does not specify what <code>y</code> should be if <code>en == 0</code>. The tool will insert a D-Latch with <code>en</code> as the enable pin.</p>
+            </div>
+        </div>
+
+        <!-- Q79 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q79</span> How do you fix the <code>if</code> statement to prevent a latch?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Always include an <code>else</code> branch that assigns a default value to the output.</p>
+                <pre class="v-code">always @(*) begin
+    if (en) y = a;
+    else    y = 1'b0; // Fully specified! Synthesizes to an AND gate.
+end</pre>
+            </div>
+        </div>
+
+        <!-- Q80 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q80</span> Spot the bug in this <code>case</code> statement:
+            <pre class="v-code">always @(*) begin
+    case(sel)
+        2'b00: y = a;
+        2'b01: y = b;
+    endcase
+end</pre></div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> It infers a Latch. The 2-bit <code>sel</code> signal has 4 possible states (00, 01, 10, 11), but only 2 are defined. If <code>sel</code> is 10, the tool holds the old value of <code>y</code>.</p>
+            </div>
+        </div>
+
+        <!-- Q81 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q81</span> How do you fix a <code>case</code> statement to prevent a latch?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Always include a <code>default</code> clause, OR assign a default value to the output at the very top of the <code>always</code> block.</p>
+                <pre class="v-code">always @(*) begin
+    y = 1'b0; // Default assignment catches all missing cases safely!
+    case(sel)
+        2'b00: y = a;
+        2'b01: y = b;
+    endcase
+end</pre>
+            </div>
+        </div>
+
+        <!-- Q82 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q82</span> <span class="tricky-badge">Tricky</span> Will this code infer a latch?
+            <pre class="v-code">always @(*) begin
+    if (en) y = a;
+    else    y = y;
+end</pre></div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> <strong>YES.</strong> Assigning a variable to itself (<code>y = y</code>) is the exact definition of a memory element holding its previous state. Synthesis tools will build a latch.</p>
+            </div>
+        </div>
+
+        <!-- Q83 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q83</span> Do missing `else` statements inside `always @(posedge clk)` infer latches?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> <strong>NO.</strong> Missing else/default statements inside an edge-triggered sequential block simply tell the Flip-Flop to disable its clock-enable (CE) pin and hold its state. It infers a standard Flip-Flop with an enable pin, not a Level-Sensitive Latch.</p>
+            </div>
+        </div>
+
+        <!-- Q84 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q84</span> What is a Combinational Loop, and why is it a severe design error?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A combinational loop occurs when a combinational output is fed back as an input to the same logic block without passing through a Flip-Flop (e.g., <code>assign a = a & b;</code>). It causes infinite oscillations (like a ring oscillator), preventing timing tools from calculating delay paths and locking up simulation engines.</p>
+            </div>
+        </div>
+
+        <!-- Q85 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q85</span> What do the synthesis directives `full_case` and `parallel_case` do?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> 
+                <br>&bull; <code>// synopsys full_case</code>: Tells the synthesis tool "don't build latches for unspecified states, assume they are don't cares (X)".
+                <br>&bull; <code>// synopsys parallel_case</code>: Tells the tool that case conditions are mutually exclusive, so build a flat MUX instead of a priority encoder (if-else chain).</p>
+            </div>
+        </div>
+
+        <!-- Q86 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q86</span> Why is using `full_case` and `parallel_case` directives heavily discouraged today?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> They are essentially "lying" to the synthesis tool. They instruct the synthesizer to behave one way, while the simulator (which ignores comments) behaves another. This guarantees Simulation-Synthesis mismatches. Instead, write structurally complete Verilog code.</p>
+            </div>
+        </div>
+
+        <!-- Q87 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q87</span> What does <code>assign y = 1'bx;</code> synthesize into?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Synthesis tools treat <code>1'bx</code> (Unknown) as a "Don't Care". The tool will tie <code>y</code> to either VDD (1) or GND (0) depending on which choice allows it to optimize the surrounding logic to the smallest area.</p>
+            </div>
+        </div>
+
+        <!-- Q88 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q88</span> What happens to unconnected input ports of an instantiated module during synthesis?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Synthesis tools will typically tie floating/unconnected inputs to logic 0 (GND), or sometimes they throw a warning/error depending on compiler strictness settings. (In simulation, they float at <code>Z</code>).</p>
+            </div>
+        </div>
+
+        <!-- Q89 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q89</span> What happens to logic that drives an unconnected output port?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> The synthesis tool identifies the logic as "dead code" (having no observable output). It will optimize away (delete) all logic gates leading up to that port to save area.</p>
+            </div>
+        </div>
+
+        <!-- Q90 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q90</span> Write a code snippet that intentionally creates a simulation-synthesis mismatch using a delay.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> <code>assign #10 y = a & b;</code><br>
+                The simulator will perfectly delay the signal by 10 time units. The synthesis tool ignores <code>#10</code> completely and builds a logic gate with a delay determined purely by physical cell library physics (e.g., 0.2ns).</p>
+            </div>
+        </div>
+
+        <!-- Q91 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q91</span> Can a <code>for</code> loop be synthesized? What is the condition?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Yes, a <code>for</code> loop inside an <code>always @(*)</code> block is synthesizable ONLY IF the loop boundaries (e.g., 0 to N) are fixed compile-time constants. The synthesis tool physically "unrolls" the loop by duplicating the combinational logic N times.</p>
+            </div>
+        </div>
+
+        <!-- Q92 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q92</span> <span class="tricky-badge">Tricky</span> What does this synthesize to? 
+            <pre class="v-code">always @(posedge clk) begin
+    y &lt;= ~y;
+end</pre></div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A T-Flip Flop (or a D-Flip Flop with its Q-bar output tied back to its D input). It acts as a divide-by-2 frequency divider.</p>
+            </div>
+        </div>
+
+        <!-- Q93 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q93</span> How do you avoid latches when decoding a 32-bit instruction opcode where only 10 opcodes are valid?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Do not write 32 <code>if-else</code> or <code>case</code> branches. Simply assign the outputs to a default "Idle/Zero" state at the very first line inside the <code>always @(*)</code> block. Then write the 10 valid <code>case</code> statements. The defaults cover the remaining \(2^{32} - 10\) states.</p>
+            </div>
+        </div>
+
+        <!-- Q94 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q94</span> True or False: <code>wire</code> can only be used for Combinational logic, and <code>reg</code> can only be used for Sequential logic.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> <strong>FALSE.</strong> <code>wire</code> is indeed only combinational. However, <code>reg</code> can model Sequential logic (if in <code>always @(posedge clk)</code>) AND Combinational logic (if in <code>always @(*)</code>). This is the biggest misconception among beginners.</p>
+            </div>
+        </div>
+
+        <!-- Q95 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q95</span> What is a Glitch in combinational logic, and how does the simulator handle it?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A glitch is a transient, unwanted pulse caused by unequal propagation delays across logic branches. A standard Verilog simulator (functional sim) without SDF (Standard Delay Format) back-annotation assumes zero delay and will <strong>NOT</strong> show glitches. You must run Post-Synthesis or Gate-Level Timing Simulation to observe them.</p>
+            </div>
+        </div>
+
+        <!-- Q96 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q96</span> Why must you use <code>assign</code> for tri-state buffers rather than an <code>always</code> block?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> You technically *can* use an `always` block (e.g., `y = en ? a : 1'bz;`), but structural design guidelines mandate `assign` for tri-states at the top level of pads/pins to ensure clear physical separation of logic cores from I/O boundary drivers.</p>
+            </div>
+        </div>
+
+        <!-- Q97 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q97</span> In an <code>always @(*)</code> block, can you read a variable that you assigned earlier in the same block?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Yes. Because combinational blocks use blocking assignments (<code>=</code>), the update is immediate. Subsequent lines in the same block will evaluate using the freshly assigned value.</p>
+            </div>
+        </div>
+
+        <!-- Q98 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q98</span> What happens if you use a <code>wire</code> variable on the LHS of an assignment inside an <code>always</code> block?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> The compiler will throw a fatal Syntax Error. Only <code>reg</code>, <code>integer</code>, <code>real</code>, or <code>time</code> data types can be assigned inside procedural blocks.</p>
+            </div>
+        </div>
+
+        <!-- Q99 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q99</span> Explain "Time-Borrowing" in the context of Latches.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Because a latch is transparent while enabled, if the combinational logic driving the latch is slightly too slow, the data can still arrive and pass through the latch *during* the transparent window. It "borrows" time from the next logic stage. Flip-flops have a rigid edge, so they cannot borrow time.</p>
+            </div>
+        </div>
+
+        <!-- Q100 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q100</span> <span class="tricky-badge">Tricky</span> You compile your RTL and the synthesis tool reports: "Inferred 1 Latch". The design is a CPU pipeline. What do you do?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> You stop and fix the RTL immediately. In a synchronous pipelined CPU design, a latch is considered a fatal design error. It indicates missing <code>else/default</code> logic in an ALU or MUX. You trace the synthesis log to the exact line number, add the default assignment, and re-synthesize.</p>
+                <div class="concept-box">
+                    <strong>Final Concept:</strong> A clean ASIC design synthesis log has exactly ZERO accidental latches.
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="bg-dark text-center text-white py-4 mt-5 border-top border-secondary">
+        <p class="mb-0">© 2026 Complete VLSI Interview Handbook. Crafted for silicon engineers.</p>
+    </footer>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
