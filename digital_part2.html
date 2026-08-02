@@ -3,31 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chapter 1 (Part 2): MUX & Encoders - VLSI Handbook</title>
+    <title>Chapter 1 (Part 2): Digital Q&A (50 Questions) - VLSI Handbook</title>
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
-    
+
+    <!-- MathJax Configuration -->
     <script>
       MathJax = {
         tex: {
-          inlineMath: [['\\(', '\\)']],
-          displayMath: [['\\[', '\\]']]
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          displayMath: [['$$', '$$'], ['\\[', '\\]']]
         }
       };
     </script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
     <style>
-        .topic-section { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 40px; }
-        .badge-tag { font-size: 0.85rem; padding: 5px 10px; margin-right: 10px; border-radius: 4px; font-weight: 600; }
-        .def { background: #e3f2fd; color: #0d47a1; }
-        .simple { background: #e8f5e9; color: #1b5e20; }
-        .tech { background: #f3e5f5; color: #4a148c; }
-        .interview-block { background-color: #fff8e1; border-left: 5px solid var(--accent-color); padding: 20px; border-radius: 4px; margin: 20px 0; }
-        .tip-box { background-color: #e0f7fa; border-left: 5px solid #00acc1; padding: 15px; margin-top: 15px; }
-        .mistake-box { background-color: #ffebee; border-left: 5px solid #f44336; padding: 15px; margin-top: 15px; }
-        pre.verilog-code { background: #282c34; color: #abb2bf; padding: 15px; border-radius: 5px; }
+        .qa-card { background: white; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .qa-header { background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 15px 20px; font-weight: 700; color: #0f172a; border-top-left-radius: 8px; border-top-right-radius: 8px; }
+        .qa-body { padding: 20px; }
+        .q-number { background: #0b3d91; color: white; padding: 3px 10px; border-radius: 4px; font-size: 0.85rem; margin-right: 10px; }
+        .tricky-badge { background: #dc2626; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; float: right; }
+        .concept-box { background-color: #f0fdf4; border-left: 4px solid #16a34a; padding: 12px 15px; margin-top: 15px; border-radius: 0 4px 4px 0; font-size: 0.95rem; }
+        .trap-box { background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 12px 15px; margin-top: 15px; border-radius: 0 4px 4px 0; font-size: 0.95rem; }
+        .equation-box { background: #f8f9fa; padding: 15px; border-radius: 4px; border: 1px solid #dee2e6; text-align: center; font-size: 1.1rem; margin: 15px 0; overflow-x: auto; }
+        .svg-container { background: white; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; text-align: center; margin: 20px 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
     </style>
 </head>
 <body class="bg-light">
@@ -40,156 +42,500 @@
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
                     <li class="nav-item"><a class="nav-link" href="digital_part1.html">Part 1</a></li>
-                    <li class="nav-item"><a class="nav-link active" href="#">Part 2</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="#">Digital Q&A (Part 2)</a></li>
+                    <li class="nav-item"><a class="nav-link" href="digital_part3.html">Part 3</a></li>
                 </ul>
             </div>
         </div>
     </nav>
 
-    <header class="bg-dark text-white py-4 mb-4">
+    <header class="bg-dark text-white py-4 mb-4 shadow">
         <div class="container">
-            <h2>Chapter 1: Digital Electronics (Part 2/4)</h2>
-            <p class="mb-0">Multiplexers, Demultiplexers, Encoders, and Decoders</p>
+            <h2>Chapter 1: Digital Electronics — Part 2 (Q51 to Q100)</h2>
+            <p class="mb-0 text-info">Multiplexers, Encoders, Decoders, and Arithmetic Circuits</p>
         </div>
     </header>
 
-    <main class="container">
-        
-        <!-- 4. MULTIPLEXERS & DEMULTIPLEXERS -->
-        <section class="topic-section">
-            <h3 class="text-primary border-bottom pb-2">4. Multiplexers (MUX) & Demultiplexers (DEMUX)</h3>
-            
-            <p><span class="badge-tag def">Definition</span> A <strong>MUX</strong> routes one of \( 2^N \) input lines to a single output line based on \( N \) select lines. A <strong>DEMUX</strong> does the reverse, taking one input and routing it to one of \( 2^N \) outputs.</p>
-            <p><span class="badge-tag simple">Simple Explanation</span> A MUX is a digital switchboard operator. Multiple people (inputs) are trying to make a call, but there is only one telephone line (output). The operator (select lines) decides who gets to use the line. A DEMUX is when one person is calling in, and the operator connects them to the right extension.</p>
-            <p><span class="badge-tag tech">Technical Explanation</span> The MUX is a <em>universal combinational circuit</em>. A \( 2^n:1 \) MUX can implement ANY boolean function of \( n+1 \) variables. The boolean equation for a 2:1 MUX is \( Y = S'I_0 + S I_1 \). In modern FPGA architectures, Look-Up Tables (LUTs) are essentially SRAMs paired with large multiplexers to implement logic.</p>
+    <main class="container my-4">
 
-            <div class="row my-4 align-items-center">
-                <div class="col-md-6 text-center">
-                    <h5>4:1 MUX Architecture</h5>
-                    <svg width="250" height="250" viewBox="0 0 250 250">
-                        <polygon points="100,20 180,60 180,180 100,220" fill="#f8f9fa" stroke="#0b3d91" stroke-width="3"/>
-                        <text x="120" y="125" font-family="Arial" font-weight="bold" font-size="16">4:1 MUX</text>
-                        <!-- Inputs -->
-                        <line x1="40" y1="60" x2="105" y2="60" stroke="black" stroke-width="2"/>
-                        <text x="15" y="65">I0</text>
-                        <line x1="40" y1="100" x2="100" y2="100" stroke="black" stroke-width="2"/>
-                        <text x="15" y="105">I1</text>
-                        <line x1="40" y1="140" x2="100" y2="140" stroke="black" stroke-width="2"/>
-                        <text x="15" y="145">I2</text>
-                        <line x1="40" y1="180" x2="105" y2="180" stroke="black" stroke-width="2"/>
-                        <text x="15" y="185">I3</text>
-                        <!-- Select Lines -->
-                        <line x1="125" y1="205" x2="125" y2="240" stroke="black" stroke-width="2"/>
-                        <text x="110" y="245">S1</text>
-                        <line x1="155" y1="190" x2="155" y2="240" stroke="black" stroke-width="2"/>
-                        <text x="155" y="245">S0</text>
-                        <!-- Output -->
-                        <line x1="180" y1="120" x2="230" y2="120" stroke="black" stroke-width="2"/>
-                        <text x="235" y="125">Y</text>
-                    </svg>
-                </div>
-                <div class="col-md-6">
-                    <h5>Verilog Implementation (4:1 MUX)</h5>
-                    <pre class="verilog-code text-start"><code>module mux4to1 (
-    input [3:0] in,
-    input [1:0] sel,
-    output reg y
-);
-    // Behavioral modeling using case
-    always @(*) begin
-        case(sel)
-            2'b00: y = in[0];
-            2'b01: y = in[1];
-            2'b10: y = in[2];
-            2'b11: y = in[3];
-            default: y = 1'bx;
-        endcase
-    end
-endmodule</code></pre>
-                </div>
+        <!-- ================= SECTION 4: MULTIPLEXERS (MUX) ================= -->
+        <h3 class="text-primary border-bottom pb-2 mb-4"><i class="fa-solid fa-code-branch me-2"></i>4. Multiplexers (MUX) & Demultiplexers</h3>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q51</span> What is a Multiplexer (MUX)?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A MUX is a digital switch or data selector. It takes $2^N$ input lines and routes exactly one of them to a single output line, based on the binary value of $N$ select lines.</p>
             </div>
+        </div>
 
-            <div class="interview-block shadow-sm">
-                <h5 class="text-danger fw-bold"><i class="fa-solid fa-microphone me-2"></i>The Interview Scenario</h5>
-                <p><strong>Interviewer:</strong> "How can you implement a 2-input XOR gate using a 2:1 MUX?"</p>
-                <p><strong>Your Satisfying Answer:</strong> "The boolean equation for a 2-input XOR is \( Y = A \oplus B = A'B + AB' \). The standard equation for a 2:1 MUX is \( Y = S'I_0 + SI_1 \). <br><br>
-                If we use A as the select line (\( S = A \)), the equation becomes \( Y = A'I_0 + AI_1 \). By comparing the two equations, we can map \( I_0 = B \) and \( I_1 = B' \). So, connect A to the select pin, B to the \( I_0 \) pin, and an inverted B (which requires a NOT gate) to the \( I_1 \) pin."</p>
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q52</span> Write the Boolean equation for a 2:1 MUX.</div>
+            <div class="qa-body">
+                <div class="equation-box">
+                    $Y = S'I_0 + S I_1$
+                </div>
+                <p>Where $S$ is the select line, and $I_0, I_1$ are the data inputs.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q53</span> Why is a MUX considered a "Universal Combinational Circuit"?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Because a $2^N:1$ MUX can be used to implement <strong>any</strong> boolean function of $N+1$ variables, without needing any other logic gates (except occasionally an inverter for the inputs). FPGAs use this principle; their Look-Up Tables (LUTs) are essentially massive MUXes driven by SRAM cells.</p>
+            </div>
+        </div>
+
+        <!-- SVG DIAGRAM: 2:1 MUX -->
+        <div class="svg-container">
+            <h5 class="text-dark mb-3">2:1 MUX Symbol & Hardware</h5>
+            <svg width="350" height="200" viewBox="0 0 350 200">
+                <!-- MUX Body -->
+                <polygon points="120,30 220,70 220,130 120,170" fill="#e3f2fd" stroke="#0d47a1" stroke-width="2"/>
+                <text x="150" y="105" font-weight="bold" fill="#0d47a1">MUX</text>
                 
-                <hr>
-                <p class="mb-1"><strong>Follow-up Q:</strong> "What if I told you that you have NO logic gates at all—only 2:1 multiplexers. How do you invert B for that \( I_1 \) pin?"</p>
-                <p class="mb-1 text-muted"><strong>Answer:</strong> "I can create an inverter using another 2:1 MUX. To make a NOT gate for B, I connect B to the select line of a second MUX. I tie \( I_0 \) to VDD (logic 1) and \( I_1 \) to GND (logic 0). The output is \( B'(1) + B(0) = B' \). I then feed this into \( I_1 \) of the first MUX."</p>
+                <!-- Inputs -->
+                <line x1="60" y1="70" x2="120" y2="70" stroke="black" stroke-width="2"/>
+                <text x="40" y="75">I0</text>
+                
+                <line x1="60" y1="130" x2="120" y2="130" stroke="black" stroke-width="2"/>
+                <text x="40" y="135">I1</text>
+                
+                <!-- Select -->
+                <line x1="170" y1="150" x2="170" y2="190" stroke="red" stroke-width="2"/>
+                <text x="165" y="210" fill="red" font-weight="bold">S</text>
+                
+                <!-- Output -->
+                <line x1="220" y1="100" x2="280" y2="100" stroke="blue" stroke-width="2"/>
+                <text x="290" y="105" fill="blue" font-weight="bold">Y</text>
+            </svg>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q54</span> <span class="tricky-badge">Whiteboard</span> How do you implement a NOT gate using a 2:1 MUX?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Connect the input signal $A$ to the Select line ($S=A$). 
+                <br>Connect $I_0 = 1$ (VDD). 
+                <br>Connect $I_1 = 0$ (GND). 
+                <br>Equation: $Y = A'(1) + A(0) = A'$.</p>
             </div>
+        </div>
 
-            <div class="mistake-box">
-                <strong><i class="fa-solid fa-triangle-exclamation"></i> Common Mistake:</strong> Trying to draw truth tables and K-maps during the interview to solve MUX implementation questions. Use Shannon's Expansion (the algebraic method shown above) instead—it's 10x faster and less prone to arithmetic errors under pressure.
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q55</span> How do you implement an AND gate using a 2:1 MUX?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Connect $A$ to the Select line ($S=A$). 
+                <br>Connect $I_0 = 0$ (GND). 
+                <br>Connect $I_1 = B$. 
+                <br>Equation: $Y = A'(0) + A(B) = A \cdot B$.</p>
             </div>
-        </section>
+        </div>
 
-        <!-- 5. ENCODERS & DECODERS -->
-        <section class="topic-section">
-            <h3 class="text-primary border-bottom pb-2">5. Encoders & Decoders</h3>
-            
-            <p><span class="badge-tag def">Definition</span> A <strong>Decoder</strong> converts an N-bit binary code into up to \( 2^N \) unique output lines (Binary to One-Hot). An <strong>Encoder</strong> does the reverse, converting \( 2^N \) input lines (where only one is active) into an N-bit binary code (One-Hot to Binary).</p>
-            
-            <table class="table table-bordered mt-4">
-                <thead class="table-dark">
-                    <tr><th>Feature</th><th>Decoder</th><th>Encoder</th></tr>
-                </thead>
-                <tbody>
-                    <tr><td><strong>Function</strong></td><td>Translates address/code to a specific line</td><td>Translates active line to a binary code</td></tr>
-                    <tr><td><strong>Inputs to Outputs</strong></td><td>\( N \rightarrow 2^N \)</td><td>\( 2^N \rightarrow N \)</td></tr>
-                    <tr><td><strong>Primary VLSI Use Case</strong></td><td>Memory Address Decoding</td><td>Interrupt handling, Data Compression</td></tr>
-                    <tr><td><strong>Combinational Nature</strong></td><td>Generates all fundamental <em>Minterms</em></td><td>Requires priority logic if multiple inputs active</td></tr>
-                </tbody>
-            </table>
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q56</span> How do you implement an OR gate using a 2:1 MUX?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Connect $A$ to the Select line ($S=A$). 
+                <br>Connect $I_0 = B$. 
+                <br>Connect $I_1 = 1$ (VDD). 
+                <br>Equation: $Y = A'(B) + A(1) = A'B + A = A + B$.</p>
+            </div>
+        </div>
 
-            <h5 class="mt-4 text-primary">The Priority Encoder</h5>
-            <p><span class="badge-tag tech">Technical Explanation</span> A standard encoder breaks if two inputs are logic HIGH simultaneously. A <strong>Priority Encoder</strong> solves this by assigning a hierarchy to the inputs. If multiple inputs are high, it outputs the binary code of the input with the highest priority. This is the exact digital circuit used inside CPUs to handle hardware interrupts (e.g., a Power Failure interrupt has higher priority than a Keyboard interrupt).</p>
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q57</span> <span class="tricky-badge">Tricky</span> How do you implement an XOR gate using a 2:1 MUX?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> The XOR equation is $Y = A'B + AB'$. 
+                <br>Connect $A$ to the Select line ($S=A$). 
+                <br>Connect $I_0 = B$. 
+                <br>Connect $I_1 = B'$. (Requires a NOT gate to invert B). 
+                <br>If no NOT gate is allowed, use a second 2:1 MUX to generate $B'$.</p>
+            </div>
+        </div>
 
-            <div class="row my-4">
-                <div class="col-md-7">
-                    <div class="interview-block shadow-sm h-100 m-0">
-                        <h5 class="text-danger fw-bold"><i class="fa-solid fa-microphone me-2"></i>The Interview Scenario</h5>
-                        <p><strong>Interviewer:</strong> "How would you implement a Full Adder circuit using a Decoder and minimum additional gates?"</p>
-                        <p><strong>Your Satisfying Answer:</strong> "A Full Adder has 3 inputs (A, B, Cin) and 2 outputs (Sum, Cout). Because it has 3 inputs, I will use a 3-to-8 Decoder. A Decoder naturally generates all possible minterms of its inputs (0 through 7). <br><br>
-                        From the truth table of a Full Adder:<br>
-                        Sum = \(\Sigma m(1, 2, 4, 7)\)<br>
-                        Cout = \(\Sigma m(3, 5, 6, 7)\)<br><br>
-                        So, I simply take the output lines 1, 2, 4, and 7 from the decoder and feed them into a 4-input OR gate for the Sum. I take output lines 3, 5, 6, and 7 and feed them into another 4-input OR gate for Cout. It takes exactly one 3:8 decoder and two 4-input OR gates."</p>
-                    </div>
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q58</span> What is the formula for calculating how many $2:1$ MUXes are required to build an $N:1$ MUX?</div>
+            <div class="qa-body">
+                <div class="equation-box">
+                    $\text{Total 2:1 MUXes} = N - 1$
                 </div>
-                <div class="col-md-5">
-                    <h5>Verilog: 4:2 Priority Encoder</h5>
-                    <pre class="verilog-code text-start h-100 m-0"><code>module priority_encoder (
-    input [3:0] in,
-    output reg [1:0] out,
-    output reg valid
-);
-    // Highest index has priority
-    always @(*) begin
-        valid = 1'b1;
-        casex(in)
-            4'b1xxx: out = 2'd3;
-            4'b01xx: out = 2'd2;
-            4'b001x: out = 2'd1;
-            4'b0001: out = 2'd0;
-            default: begin
-                out = 2'd0;
-                valid = 1'b0;
-            end
-        endcase
-    end
-endmodule</code></pre>
+                <p>For example, a $4:1$ MUX requires $(4-1) = 3$ MUXes. An $8:1$ MUX requires $7$ MUXes.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q59</span> How do you build an $8:1$ MUX using only $4:1$ MUXes and a $2:1$ MUX?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> 
+                <br>1. Connect inputs $D_0-D_3$ to the first $4:1$ MUX.
+                <br>2. Connect inputs $D_4-D_7$ to the second $4:1$ MUX.
+                <br>3. Connect the lower 2 select lines ($S_0, S_1$) to BOTH $4:1$ MUXes.
+                <br>4. Feed the two outputs into a $2:1$ MUX, controlled by the MSB select line ($S_2$).</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q60</span> <span class="tricky-badge">Tricky</span> How do you use a 2:1 MUX to create a Level-Sensitive D-Latch?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Connect the <code>Clock</code> to the Select line ($S=Clk$). 
+                <br>Connect the <code>Data (D)</code> to $I_1$. 
+                <br>Connect the Output <code>Y</code> back to $I_0$ (Feedback loop!). 
+                <br>When $Clk=1$, $Y = D$ (Transparent). When $Clk=0$, $Y = Y$ (Holds previous state).</p>
+                <div class="trap-box">
+                    <strong>Trap:</strong> This forms a combinational loop. It works logically, but STA tools hate combinational loops. Actual physical latches are built using cross-coupled inverters and transmission gates.
                 </div>
             </div>
+        </div>
 
-            <div class="tip-box">
-                <strong><i class="fa-solid fa-lightbulb"></i> Real Interview Tip:</strong> Notice the <code>casex</code> in the Verilog code? Interviewers love asking about <code>case</code>, <code>casex</code>, and <code>casez</code>. <code>casex</code> treats 'x' and 'z' as don't cares, which perfectly maps to priority encoder logic in simulation, but <code>casez</code> is generally preferred for synthesis to avoid matching literal unknown 'x' states in RTL.
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q61</span> What is a Demultiplexer (DEMUX)?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A DEMUX does the exact reverse of a MUX. It takes a single input data line and routes it to one of $2^N$ output lines, based on the value of $N$ select lines. The unselected output lines are forced to 0.</p>
             </div>
-        </section>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q62</span> Can a MUX act as a Parallel-to-Serial converter?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Yes. If you apply an N-bit parallel word to the data inputs of a MUX, and connect a sequential binary counter to the select lines, the MUX will output the data bits serially one-by-one on each clock cycle.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q63</span> How is a MUX physically implemented at the transistor level in CMOS?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> While it can be built using standard AND/OR logic gates, modern VLSI physically builds MUXes using <strong>Transmission Gates (TG)</strong>. A 2:1 MUX requires only 2 TGs (4 transistors total + an inverter for the select line), drastically reducing silicon area compared to standard NAND/NOR implementations.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q64</span> What happens if the select line of a MUX toggles while the inputs are stable?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> It can cause a <strong>Glitch</strong>. If $I_0 = 1$ and $I_1 = 1$, the output should theoretically stay 1. However, as the select line transitions from 0 to 1, the internal AND/OR gates might experience unequal propagation delays, causing the output to momentarily dip to 0 (a Static-1 Hazard).</p>
+            </div>
+        </div>
+
+
+        <!-- ================= SECTION 5: ENCODERS & DECODERS ================= -->
+        <h3 class="text-primary border-bottom pb-2 my-4"><i class="fa-solid fa-arrows-split-up-and-left me-2"></i>5. Encoders & Decoders</h3>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q65</span> What is a Decoder?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A combinational circuit that converts an N-bit binary input code into exactly $2^N$ output lines. For any given input combination, exactly ONE output line goes High (Active-High Decoder) or Low (Active-Low Decoder).</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q66</span> What is the fundamental logical relationship between a Decoder and Boolean algebra?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A Decoder generates ALL possible <strong>Minterms</strong> for its given inputs. An N-to-$2^N$ decoder is essentially a minterm generator. By feeding selected decoder outputs into a massive OR gate, you can implement ANY boolean function in Sum of Products (SOP) form.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q67</span> <span class="tricky-badge">Whiteboard</span> How do you implement a Full Adder using a 3:8 Decoder?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A Full Adder has 3 inputs ($A, B, C_{in}$). A 3:8 Decoder generates minterms $m_0$ through $m_7$. 
+                <br>&bull; Sum = $\Sigma m(1, 2, 4, 7)$. Connect decoder outputs 1, 2, 4, 7 to a 4-input OR gate.
+                <br>&bull; Carry Out = $\Sigma m(3, 5, 6, 7)$. Connect decoder outputs 3, 5, 6, 7 to a 4-input OR gate.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q68</span> What is the difference between a Decoder and a Demultiplexer (DEMUX)?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> They are physically the exact same hardware circuit! 
+                <br>&bull; If you treat the inputs as an Address, it's a <strong>Decoder</strong>.
+                <br>&bull; If you tie the address inputs to the Select lines, and pump data into the global "Enable" pin, it acts as a <strong>DEMUX</strong> (routing the enable data to the selected output line).</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q69</span> How do you build a 4:16 Decoder using 3:8 Decoders?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Use TWO 3:8 Decoders with Enable pins.
+                <br>1. Connect the lower 3 inputs ($A_0, A_1, A_2$) to both decoders in parallel.
+                <br>2. Connect the MSB input ($A_3$) directly to the Enable pin of the second decoder.
+                <br>3. Connect $A_3$ through a NOT gate to the Enable pin of the first decoder.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q70</span> What is an Encoder?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> The reverse of a decoder. It takes $2^N$ input lines (where only one is active at a time) and compresses them into an N-bit binary code. (One-Hot to Binary conversion).</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q71</span> What is the catastrophic flaw of a standard basic Encoder?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> If TWO input lines go High simultaneously, the output binary code becomes completely corrupt (a logical OR of the two intended codes). It also outputs `00...0` if input 0 is active, OR if NO inputs are active, making it ambiguous.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q72</span> How does a Priority Encoder fix this flaw?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A Priority Encoder assigns a strict hierarchy to its inputs (e.g., $D_3 > D_2 > D_1 > D_0$). If multiple inputs go High simultaneously, the encoder ignores the lower-priority inputs and outputs the binary code corresponding strictly to the highest-priority active input. It also features a "Valid" output pin to resolve the all-zero ambiguity.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q73</span> What is the primary use case for a Priority Encoder in an SoC?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> <strong>Interrupt Controllers (NVIC/GIC).</strong> When multiple hardware peripherals (UART, Timer, GPIO) trigger an interrupt request (IRQ) to the CPU at the exact same millisecond, the Priority Encoder ensures the CPU handles the most critical hardware fault first.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q74</span> Write the Boolean equations for a 4:2 Priority Encoder (assuming $D_3$ has highest priority).</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Let inputs be $D_3, D_2, D_1, D_0$ and outputs be $Y_1, Y_0$ and $V$ (Valid).
+                <br>$V = D_3 + D_2 + D_1 + D_0$
+                <br>$Y_1 = D_3 + D_2$
+                <br>$Y_0 = D_3 + (D_1 \cdot D_2')$</p>
+                <div class="concept-box">
+                    <strong>Concept:</strong> For $Y_0$, $D_1$ is only allowed to drive the output High if the higher-priority $D_2$ is NOT active.
+                </div>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q75</span> What is a BCD to 7-Segment Decoder?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A specialized combinational circuit that takes a 4-bit Binary Coded Decimal (BCD) input (values 0-9) and activates the specific combinations of 7 output lines needed to light up an LED digital display to show that decimal number.</p>
+            </div>
+        </div>
+
+
+        <!-- ================= SECTION 6: ARITHMETIC CIRCUITS (ADDERS) ================= -->
+        <h3 class="text-primary border-bottom pb-2 my-4"><i class="fa-solid fa-plus-minus me-2"></i>6. Arithmetic Circuits (Adders & Comparators)</h3>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q76</span> Write the Boolean equations for a Half Adder.</div>
+            <div class="qa-body">
+                <div class="equation-box">
+                    $Sum = A \oplus B$<br>
+                    $Carry = A \cdot B$
+                </div>
+                <p>It takes two 1-bit inputs and cannot accept a carry-in from a previous stage.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q77</span> Write the Boolean equations for a Full Adder.</div>
+            <div class="qa-body">
+                <div class="equation-box">
+                    $Sum = A \oplus B \oplus C_{in}$<br>
+                    $C_{out} = (A \cdot B) + (C_{in} \cdot (A \oplus B))$
+                </div>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q78</span> How do you build a Full Adder using Half Adders?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> It takes exactly <strong>Two Half Adders and one OR gate</strong>.
+                <br>1. First Half Adder adds $A$ and $B$, generating $Sum_1$ and $Carry_1$.
+                <br>2. Second Half Adder adds $Sum_1$ and $C_{in}$, generating the final $Sum$ and $Carry_2$.
+                <br>3. The final $C_{out}$ is generated by passing $Carry_1$ and $Carry_2$ through an OR gate.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q79</span> What is a Ripple Carry Adder (RCA), and what is its fundamental flaw?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> An RCA cascades $N$ Full Adders in series to add $N$-bit numbers. The $C_{out}$ of bit 0 feeds into the $C_{in}$ of bit 1. 
+                <br><strong>Flaw:</strong> Delay scales linearly $O(N)$. The final MSB cannot compute its sum until the carry ripples sequentially through every single previous bit. For a 32-bit RCA, the critical path is massive, heavily restricting clock frequency.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q80</span> How does a Carry Look-Ahead Adder (CLA) solve the RCA delay problem?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> It computes the Carry signals for ALL bits simultaneously in parallel using <strong>Generate ($G$)</strong> and <strong>Propagate ($P$)</strong> logic, rather than waiting for them to ripple. This reduces the delay from $O(N)$ to theoretically $O(\log N)$, trading a massive increase in silicon area (for complex logic gates) to achieve high speed.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q81</span> Define the Propagate ($P_i$) and Generate ($G_i$) terms in a CLA.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>&bull; <strong>Generate ($G_i = A_i \cdot B_i$):</strong> This bit stage will generate a Carry-out of 1 regardless of what the Carry-in is.
+                <br>&bull; <strong>Propagate ($P_i = A_i \oplus B_i$):</strong> This bit stage will propagate an incoming Carry-in to the Carry-out ($C_{out} = C_{in}$).</p>
+                <div class="equation-box">
+                    $C_{i+1} = G_i + (P_i \cdot C_i)$
+                </div>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q82</span> Write the equations for a Half Subtractor.</div>
+            <div class="qa-body">
+                <div class="equation-box">
+                    $Difference = A \oplus B$<br>
+                    $Borrow = A' \cdot B$
+                </div>
+                <p>Notice the Difference logic is exactly identical to the Sum logic of a Half Adder.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q83</span> <span class="tricky-badge">Tricky</span> How do CPUs perform subtraction without having dedicated Subtractor circuits?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> They use <strong>2's Complement Addition</strong>. A Subtractor is a waste of silicon. To compute $A - B$, the CPU simply inverts all the bits of $B$ (using NOT gates) and sets the initial $C_{in}$ of the Adder to $1$. This mathematically creates the 2's complement of $B$, transforming the operation into $A + (-B)$.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q84</span> How do you build an Adder/Subtractor combined unit?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Place <strong>XOR gates</strong> on the $B$ inputs of an N-bit Adder, and tie the other leg of the XOR gates to a global `Control` pin. Also, tie the $C_{in}$ of the first stage to that `Control` pin.
+                <br>&bull; <strong>Control = 0 (Add):</strong> $B \oplus 0 = B$, and $C_{in} = 0$. Circuit does $A + B$.
+                <br>&bull; <strong>Control = 1 (Sub):</strong> $B \oplus 1 = B'$, and $C_{in} = 1$. Circuit does $A + B' + 1$ (2's complement subtraction!).</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q85</span> What is a Carry Save Adder (CSA)?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Used when adding 3 or more numbers together (like in a Multiplier). Instead of rippling the carry, a CSA takes 3 inputs ($X, Y, Z$) and immediately outputs two vectors: a Sum vector and a Shifted Carry vector. These two vectors are only added together using a standard CLA at the very last step. This breaks the critical path delay of chained adders.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q86</span> What logic gate forms the core of a Digital Multiplier?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> The <strong>AND gate</strong>. In binary, multiplying a bit by a bit ($1 \times 1 = 1$, $1 \times 0 = 0$) is exactly the logical AND operation. A multiplier generates partial products using an array of AND gates, then adds those partial products using CSAs and CLAs.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q87</span> How many bits is the output of an $N$-bit by $M$-bit multiplier?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> The result is strictly $N + M$ bits wide to prevent overflow. (e.g., Multiplying two 32-bit numbers requires a 64-bit result register).</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q88</span> What is a Magnitude Comparator?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A combinational circuit that compares two N-bit binary numbers $A$ and $B$, and outputs three signals: $A > B$, $A = B$, and $A < B$.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q89</span> Write the logic for a 1-bit Comparator.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>&bull; Equal ($A = B$): $A \odot B$ (XNOR)
+                <br>&bull; Greater ($A > B$): $A \cdot B'$
+                <br>&bull; Less ($A < B$): $A' \cdot B$</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q90</span> In a Multi-bit Comparator, in what order are the bits checked?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> From <strong>MSB to LSB</strong>. The Most Significant Bits dictate magnitude. If $A_{msb} > B_{msb}$, the entire number $A$ is greater, and the lower bits are completely ignored.</p>
+            </div>
+        </div>
+
+
+        <!-- ================= SECTION 7: WHITEBOARD COMBINATIONAL PUZZLES ================= -->
+        <h3 class="text-primary border-bottom pb-2 my-4"><i class="fa-solid fa-puzzle-piece me-2"></i>7. Combinational Logic Whiteboard Puzzles</h3>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q91</span> <span class="tricky-badge">Whiteboard</span> Can you build a 2-input AND gate using only 2-input NOR gates? How many?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Yes, it requires <strong>3 NOR gates</strong>.
+                <br>De Morgan's: $A \cdot B = (A' + B')'$.
+                <br>1. Generate $A'$ using NOR(A,A).
+                <br>2. Generate $B'$ using NOR(B,B).
+                <br>3. Feed $A'$ and $B'$ into the final NOR gate.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q92</span> <span class="tricky-badge">Whiteboard</span> A room has 3 light switches ($A, B, C$). Toggling ANY single switch must turn the light on/off. Write the boolean equation.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> This is the definition of an Odd Parity generator. 
+                <br>Equation: $Light = A \oplus B \oplus C$.
+                <br>Whenever exactly one (or all three) switches are flipped (1), the output changes state.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q93</span> <span class="tricky-badge">Whiteboard</span> How do you detect if a 4-bit number is a power of 2?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A binary number is a power of 2 if it contains exactly a single '1' bit (e.g., 0001, 0010, 0100, 1000). You can detect this by checking if `(N & (N - 1)) == 0`. (Note: this also flags 0000 as true, so you must explicitly AND it with `(N != 0)`).</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q94</span> <span class="tricky-badge">Whiteboard</span> Implement a 3-input Majority Gate (Outputs 1 if at least two inputs are 1).</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> 
+                <br>Equation: $Y = AB + BC + AC$.
+                <br>This exact logic is used as the Carry-Out generation logic in a Full Adder.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q95</span> <span class="tricky-badge">Whiteboard</span> Why does $A \oplus B \oplus A \oplus B = 0$?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Because XOR is associative and commutative. You can rearrange it as $(A \oplus A) \oplus (B \oplus B)$. Since any signal XORed with itself is 0, the equation reduces to $0 \oplus 0 = 0$.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q96</span> How do you double a binary number without using an Adder or Multiplier?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Apply a <strong>Logical Left Shift</strong> by 1 bit. Appending a '0' to the LSB mathematically multiplies any binary number by exactly 2.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q97</span> How do you divide an unsigned binary number by 2?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Apply a <strong>Logical Right Shift</strong> by 1 bit. The LSB is dropped, and a 0 is inserted at the MSB.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q98</span> <span class="tricky-badge">Tricky</span> How do you divide a SIGNED (2's complement) binary number by 2?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Apply an <strong>Arithmetic Right Shift</strong> (<code>&gt;&gt;&gt;</code>). You cannot just insert a 0 at the MSB. You must replicate the existing MSB (the sign bit) to preserve the negative sign while shifting.</p>
+            </div>
+        </div>
+
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q99</span> If you have an N-bit Ripple Carry Adder, what is the critical path?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> The critical path runs from the $A_0, B_0, C_{in}$ inputs of the LSB Half-Adder, through the Carry generation logic of every intermediate Full Adder, arriving finally at the Sum logic of the MSB Full Adder. It traverses $N$ carry stages.</p>
+            </div>
+        </div>
+
+        <div class="qa-card border-success border-2">
+            <div class="qa-header bg-success text-white"><span class="q-number bg-dark">Q100</span> The Final Test: Swap the values of two variables A and B using strictly combinational logic (no temporary register).</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Use three cascaded XOR gates.
+                <br>1. $A_{new} = A \oplus B$
+                <br>2. $B_{new} = A_{new} \oplus B = (A \oplus B) \oplus B = A \oplus (B \oplus B) = A \oplus 0 = \mathbf{A}$.
+                <br>3. $A_{final} = A_{new} \oplus B_{new} = (A \oplus B) \oplus A = (A \oplus A) \oplus B = 0 \oplus B = \mathbf{B}$.</p>
+                <div class="trap-box">
+                    <strong>Trap:</strong> While this works perfectly on a whiteboard or software, in physical hardware (Verilog), doing this combinationally creates a massive delay and potential glitches. In hardware, you should just swap wires directly (`assign {A, B} = {B, A}`) without using gates at all!
+                </div>
+            </div>
+        </div>
 
     </main>
 
+    <footer class="bg-dark text-center text-white py-4 mt-5 border-top border-secondary">
+        <p class="mb-0">© 2026 Complete VLSI Interview Handbook. Crafted for silicon engineers.</p>
+    </footer>
+
+    <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
