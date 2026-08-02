@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 2 (Part 4): Verilog Q&A (50 Questions) - VLSI Handbook</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        .qa-card { background: white; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .qa-header { background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 15px 20px; font-weight: 700; color: #0f172a; border-top-left-radius: 8px; border-top-right-radius: 8px; }
+        .qa-body { padding: 20px; }
+        .q-number { background: #0b3d91; color: white; padding: 3px 10px; border-radius: 4px; font-size: 0.85rem; margin-right: 10px; }
+        .tricky-badge { background: #dc2626; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; float: right; }
+        .concept-box { background-color: #f0fdf4; border-left: 4px solid #16a34a; padding: 12px 15px; margin-top: 15px; border-radius: 0 4px 4px 0; font-size: 0.95rem; }
+        .trap-box { background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 12px 15px; margin-top: 15px; border-radius: 0 4px 4px 0; font-size: 0.95rem; }
+        pre.v-code { background: #1e293b; color: #f8fafc; padding: 15px; border-radius: 6px; font-size: 0.9rem; margin: 10px 0; }
+    </style>
+</head>
+<body class="bg-light">
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html"><i class="fa-solid fa-microchip me-2"></i>VLSI Handbook</a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="verilog_part1.html">Part 1</a></li>
+                    <li class="nav-item"><a class="nav-link" href="verilog_part2.html">Part 2</a></li>
+                    <li class="nav-item"><a class="nav-link" href="verilog_part3.html">Part 3</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="#">Verilog Q&A (Part 4)</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <header class="bg-dark text-white py-4 mb-4 shadow">
+        <div class="container">
+            <h2>Chapter 2: Verilog HDL — Part 4 (Q151 to Q200)</h2>
+            <p class="mb-0 text-info">Timing Delays, System Tasks, Testbenches, and Whiteboard Debugging</p>
+        </div>
+    </header>
+
+    <main class="container my-4">
+
+        <!-- ================= SECTION 11: TIMING DELAYS & EVENTS ================= -->
+        <h3 class="text-primary border-bottom pb-2 mb-4"><i class="fa-solid fa-stopwatch me-2"></i>11. Timing Delays: Inertial vs. Transport</h3>
+
+        <!-- Q151 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q151</span> What is Inertial Delay in Verilog, and what hardware does it model?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Inertial delay models the minimum amount of energy (time duration) a signal must sustain to change the output of a logic gate. It acts as a <strong>Glitch Filter</strong>. Any pulse narrower than the inertial delay is ignored and not propagated to the output.</p>
+            </div>
+        </div>
+
+        <!-- Q152 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q152</span> How do you code Inertial Delay in Verilog?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> By using a delay on a continuous assignment.
+                <pre class="v-code">assign #5 y = a & b;</pre>
+                If `a & b` glitches high for only 3ns, `y` will never change. The pulse must be &ge; 5ns to pass through.</p>
+            </div>
+        </div>
+
+        <!-- Q153 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q153</span> What is Transport Delay in Verilog, and what hardware does it model?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Transport delay models the time it takes for a signal to travel down a long physical wire (flight time). It does <strong>NOT</strong> filter glitches. Every single pulse, no matter how tiny, is propagated to the output exactly as it appeared, just shifted in time.</p>
+            </div>
+        </div>
+
+        <!-- Q154 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q154</span> <span class="tricky-badge">Tricky</span> How do you code Transport Delay in Verilog?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> By using <strong>Intra-assignment delay</strong> with a non-blocking operator inside a procedural block.
+                <pre class="v-code">always @(a or b) begin
+    y &lt;= #5 (a & b);
+end</pre></p>
+                <div class="concept-box">
+                    <strong>Concept:</strong> Because it is non-blocking (`<=`), the simulator schedules the event for 5 time units in the future without blocking the thread. Multiple tiny pulses will schedule multiple updates, propagating all glitches perfectly.
+                </div>
+            </div>
+        </div>
+
+        <!-- Q155 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q155</span> What is Inter-assignment Delay? Provide syntax.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> The delay is placed on the left side of the variable. It completely pauses the execution of the procedural block for the specified time.
+                <pre class="v-code">#5 a = b; // Wait 5ns, then read 'b' and assign to 'a'.</pre></p>
+            </div>
+        </div>
+
+        <!-- Q156 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q156</span> What is Intra-assignment Delay? Provide syntax.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> The delay is placed on the right side of the assignment operator. It reads the RHS immediately, then waits, then updates the LHS.
+                <pre class="v-code">a = #5 b; // Read 'b' NOW, wait 5ns, assign the old cached value of 'b' to 'a'.</pre></p>
+            </div>
+        </div>
+
+        <!-- Q157 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q157</span> Explain the difference between <code>@</code> and <code>wait</code> in testbenches.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> 
+                <br>&bull; <code>@ (posedge clk)</code>: Is <strong>Edge-Sensitive</strong>. It pauses execution until it sees a <em>transition</em> on the signal.
+                <br>&bull; <code>wait (en == 1)</code>: Is <strong>Level-Sensitive</strong>. It pauses execution until the condition is true. If `en` is ALREADY 1 when the line executes, it does not pause at all and proceeds immediately.</p>
+            </div>
+        </div>
+
+        <!-- Q158 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q158</span> How do you declare and trigger a Named Event in Verilog?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> You declare an event, trigger it using <code>-&gt;</code>, and wait for it using <code>@</code>.
+                <pre class="v-code">event data_ready;
+...
+-> data_ready;     // Trigger the event
+...
+@(data_ready);     // Wait for the event in another block</pre></p>
+            </div>
+        </div>
+
+        <!-- Q159 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q159</span> <span class="tricky-badge">Tricky</span> What happens if a `wait (a == 1)` statement is reached at the exact same simulation time step that `a` transitions to 1?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> This creates a race condition in the event queue depending on execution order! If `a` is assigned 1 in the Active region before the `wait` evaluates, it passes immediately. If the `wait` evaluates first, it will stall until `a` is evaluated. (Always use `@` for syncing concurrent events securely).</p>
+            </div>
+        </div>
+
+        <!-- Q160 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q160</span> How do you model Clock Jitter in a Verilog testbench?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> By adding a randomized delay factor to the clock toggling using `$urandom_range`.
+                <pre class="v-code">always begin
+    #(10 + $urandom_range(0, 2) - 1) clk = ~clk; // Jitter between 9ns and 11ns
+end</pre></p>
+            </div>
+        </div>
+
+
+        <!-- ================= SECTION 12: SYSTEM TASKS & TESTBENCHES ================= -->
+        <h3 class="text-primary border-bottom pb-2 my-4"><i class="fa-solid fa-laptop-code me-2"></i>12. System Tasks & Testbench Architecture</h3>
+
+        <!-- Q161 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q161</span> What is the difference between <code>force/release</code> and <code>assign/deassign</code> system tasks?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>&bull; <code>assign / deassign</code>: Procedural continuous assignments. They override standard assignments but <strong>can ONLY be applied to `reg` data types.</strong>
+                <br>&bull; <code>force / release</code>: Absolute override. They can be applied to <strong>BOTH `wire` and `reg` data types</strong>. (Crucial for testbenches forcing internal DUT wire nodes).</p>
+            </div>
+        </div>
+
+        <!-- Q162 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q162</span> What happens to a `reg` after you execute a <code>release</code> command on it?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> The `reg` retains the value that was forced onto it until the next procedural assignment explicitly updates it. (A `wire`, however, immediately reverts to the value being driven by its continuous drivers).</p>
+            </div>
+        </div>
+
+        <!-- Q163 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q163</span> What is the difference between <code>$finish</code> and <code>$stop</code>?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> 
+                <br>&bull; <code>$stop</code>: Suspends the simulation and puts the EDA tool into interactive debugging mode (CLI prompt).
+                <br>&bull; <code>$finish</code>: Completely terminates the simulation and exits the simulator back to the host OS command line.</p>
+            </div>
+        </div>
+
+        <!-- Q164 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q164</span> How do you generate a random 32-bit number in Verilog?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Use <code>$random</code>. To ensure it is purely positive (unsigned), use <code>{$random}</code> or the SystemVerilog specific <code>$urandom</code>.</p>
+            </div>
+        </div>
+
+        <!-- Q165 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q165</span> Why is providing a seed to <code>$random(seed)</code> critical for verification?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Without a specific seed, the simulator generates the exact same sequence of "random" numbers every time you run the simulation. Passing a seed (often derived from system time or command line) ensures different stimulus patterns per run, while allowing you to reuse a failing seed to exactly recreate and debug a failure.</p>
+            </div>
+        </div>
+
+        <!-- Q166 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q166</span> What do <code>$time</code>, <code>$stime</code>, and <code>$realtime</code> return?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>&bull; <code>$time</code>: Returns the current simulation time as a 64-bit integer.
+                <br>&bull; <code>$stime</code>: Returns the time as a 32-bit integer (truncates upper bits).
+                <br>&bull; <code>$realtime</code>: Returns the time as a 64-bit Real (floating point) number, accounting for fractional timescale precision.</p>
+            </div>
+        </div>
+
+        <!-- Q167 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q167</span> How do you format <code>$display</code> to print a variable in Hex, Binary, and Decimal?</div>
+            <div class="qa-body">
+                <pre class="v-code">$display("Hex: %h, Bin: %b, Dec: %d", val, val, val);</pre>
+            </div>
+        </div>
+
+        <!-- Q168 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q168</span> What does the <code>%m</code> format specifier do in <code>$display</code>?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> It prints the <strong>Hierarchical Name</strong> (the full path) of the module instance where the `$display` statement executed. Essential for debugging which instantiation of a sub-module threw an error.</p>
+            </div>
+        </div>
+
+        <!-- Q169 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q169</span> How do you pass arguments from the OS command line into your Verilog simulation?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Using Plusargs! (<code>$test$plusargs</code> and <code>$value$plusargs</code>).
+                <pre class="v-code">// Run command: vsim tb_top +DEBUG_MODE +SEED=42
+if ($test$plusargs("DEBUG_MODE")) $display("Debug ON");
+if ($value$plusargs("SEED=%d", seed_val)) $display("Seed is %d", seed_val);</pre></p>
+            </div>
+        </div>
+
+        <!-- Q170 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q170</span> How do you dump waveforms in Verilog for viewing in GTKWave or Verdi?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> You must create a VCD (Value Change Dump) file in the testbench.
+                <pre class="v-code">initial begin
+    $dumpfile("waves.vcd");
+    $dumpvars(0, tb_top); // '0' means dump all levels of hierarchy under tb_top
+end</pre></p>
+            </div>
+        </div>
+
+        <!-- Q171 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q171</span> How do you write data out to a text file during simulation?</div>
+            <div class="qa-body">
+                <pre class="v-code">integer file_id;
+initial begin
+    file_id = $fopen("output_log.txt", "w");
+    $fdisplay(file_id, "Simulation Started at %t", $time);
+    $fclose(file_id);
+end</pre>
+            </div>
+        </div>
+
+        <!-- Q172 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q172</span> <span class="tricky-badge">Tricky</span> How do you create a Timeout Watchdog in a Verilog testbench?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Use a parallel `initial` block. If the main testbench hangs in an infinite loop, this watchdog ensures the simulator doesn't run forever and consume server resources.
+                <pre class="v-code">initial begin
+    #1000000;
+    $display("FATAL: Simulation Timeout!");
+    $finish;
+end</pre></p>
+            </div>
+        </div>
+
+        <!-- Q173 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q173</span> What is <code>$timeformat</code> used for?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> It formats how the `%t` specifier prints time in `$display`. 
+                <br>Syntax: <code>$timeformat(unit, precision, suffix, min_width);</code>
+                <br>E.g., <code>$timeformat(-9, 2, " ns", 10);</code> prints time in nanoseconds with 2 decimal places.</p>
+            </div>
+        </div>
+
+        <!-- Q174 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q174</span> How can you check for Setup and Hold timing violations directly in Verilog (without STA tools)?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Using system tasks inside a <code>specify ... endspecify</code> block.
+                <pre class="v-code">specify
+    $setup(data, posedge clk, 2.0); // 2ns setup check
+    $hold(posedge clk, data, 1.0);  // 1ns hold check
+endspecify</pre>
+                The simulator will automatically print a timing violation warning if the `data` changes within these windows.</p>
+            </div>
+        </div>
+
+        <!-- Q175 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q175</span> What is a Glitch in a Verilog testbench, and why does reading inputs on the active clock edge cause them?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> If a testbench drives `a = 1` on exactly the `posedge clk`, the RTL sampling `a` on that exact same `posedge clk` suffers a race condition. It might sample 0, or it might sample 1. <strong>Solution:</strong> Testbenches should always drive stimulus on the <em>negative</em> edge of the clock (or use non-blocking assignments) so data is perfectly stable when the DUT samples it on the positive edge.</p>
+            </div>
+        </div>
+
+
+        <!-- ================= SECTION 13: WHITEBOARD DEBUGGING SCENARIOS ================= -->
+        <h3 class="text-primary border-bottom pb-2 my-4"><i class="fa-solid fa-bug me-2"></i>13. Whiteboard Debugging & Traps</h3>
+
+        <!-- Q176 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q176</span> <span class="tricky-badge">Identify the Bug</span> What is wrong with this clock divider logic?
+            <pre class="v-code">always @(posedge clk) begin
+    clk_out = ~clk_out;
+end</pre></div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> It uses a blocking assignment (<code>=</code>) in a sequential edge-triggered block. In hardware, `clk_out` acts as a clock for other modules. If you use `=`, any module sampling `clk_out` in the same Active region might suffer a race condition. It <strong>MUST</strong> be <code>clk_out &lt;= ~clk_out;</code>.</p>
+            </div>
+        </div>
+
+        <!-- Q177 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q177</span> <span class="tricky-badge">Identify the Bug</span> What is wrong with this assignment?
+            <pre class="v-code">wire a;
+always @(*) begin
+    a = b & c;
+end</pre></div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> You cannot assign a <code>wire</code> inside an <code>always</code> block! It will fail compilation. <code>a</code> must be declared as a <code>reg</code>, or the logic must be rewritten as <code>assign a = b & c;</code>.</p>
+            </div>
+        </div>
+
+        <!-- Q178 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q178</span> <span class="tricky-badge">Identify the Bug</span> What is wrong with this MUX?
+            <pre class="v-code">always @(sel or a or b) begin
+    if (sel == 1'bx) y = 1'b0;
+    else if (sel) y = a;
+    else y = b;
+end</pre></div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Checking for <code>1'bx</code> using the logical equality operator <code>==</code> always returns <code>X</code> (False in if-statements). To check for `X`, you MUST use the case equality operator <code>===</code>. (e.g., <code>if (sel === 1'bx)</code>).</p>
+            </div>
+        </div>
+
+        <!-- Q179 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q179</span> <span class="tricky-badge">Identify the Bug</span> Find the simulation hang.
+            <pre class="v-code">initial begin
+    clk = 0;
+    forever clk = ~clk;
+end</pre></div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> The <code>forever</code> loop has no time delay! It will loop infinitely at time `t=0` (Delta cycle lock-up), freezing the simulation. It must be: <code>forever #5 clk = ~clk;</code>.</p>
+            </div>
+        </div>
+
+        <!-- Q180 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q180</span> <span class="tricky-badge">Identify the Bug</span> Why won't this reset block work reliably?
+            <pre class="v-code">always @(posedge clk or negedge rst_n) begin
+    if (rst_n == 0) q &lt;= 0;
+    else q &lt;= d;
+end</pre></div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> If `rst_n` transitions to `X` or `Z` (very common at simulation time 0 before drivers are active), `rst_n == 0` evaluates to False (`X`). The Flip-Flop misses the reset! It should be <code>if (!rst_n)</code> which safely catches 0 (and handles initial states better), or explicitly <code>if (rst_n === 1'b0)</code>.</p>
+            </div>
+        </div>
+
+        <!-- Q181 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q181</span> <span class="tricky-badge">Identify the Bug</span> Why is this testbench stimulus bad practice?
+            <pre class="v-code">initial begin
+    @(posedge clk);
+    data = 1;
+    @(posedge clk);
+    data = 0;
+end</pre></div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Using a blocking assignment exactly on the clock edge creates a race condition with the DUT which is also sampling on the posedge. 
+                <br><strong>Fix:</strong> Use non-blocking <code>data &lt;= 1;</code> to schedule the drive in the NBA region (after the DUT samples in Active), or drive on the negedge: <code>@(negedge clk) data = 1;</code>.</p>
+            </div>
+        </div>
+
+        <!-- Q182 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q182</span> What happens if two `initial` blocks conflict?
+            <pre class="v-code">initial a = 1;
+initial a = 0;</pre></div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> This is a simulation race condition. The value of `a` at time 0 will be completely arbitrary depending on which block the simulator decides to evaluate last. (EDA tools process them in an undefined order).</p>
+            </div>
+        </div>
+
+        <!-- Q183 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q183</span> <span class="tricky-badge">Identify the Bug</span> What's wrong with this synthesis code?
+            <pre class="v-code">always @(posedge clk) begin
+    y &lt;= a;
+    y &lt;= b;
+end</pre></div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> <code>y</code> is assigned multiple times in the same clock cycle. In Verilog, the last non-blocking assignment textually wins. So `y` will always take the value of `b`. `a` is completely ignored and synthesized away.</p>
+            </div>
+        </div>
+
+        <!-- Q184 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q184</span> What is the output of `$display` here?
+            <pre class="v-code">reg [3:0] a;
+initial begin
+    a = 4'b1111;
+    $display("Value is %d", a + 1'b1);
+end</pre></div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> The output is <strong>0</strong>. `a` is 15. Adding 1 causes integer overflow (16, which is 5-bits `1_0000`). Because the expression width is bounded by the max width of the operands (4 bits), it truncates to `0000`.</p>
+            </div>
+        </div>
+
+        <!-- Q185 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q185</span> <span class="tricky-badge">Whiteboard</span> How do you initialize a 2D memory array in a single line of Verilog?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> You <strong>CANNOT</strong> initialize an entire unpacked array in a single assignment (like `mem = 0;`). You must use a `for` loop, or use `$readmemh` to load it from a file.
+                <pre class="v-code">integer i;
+initial begin
+    for(i=0; i<256; i=i+1) mem[i] = 8'h00;
+end</pre></p>
+            </div>
+        </div>
+
+        <!-- Remaining Quick-Fire Debugs (Q186 - Q200) -->
+        <!-- Q186 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q186</span> Can you instantiate a module inside an <code>always</code> block?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> <strong>NO.</strong> Modules are static physical hardware boundaries. They can only be instantiated at the module top-level (structural level). You cannot dynamically instantiate hardware based on behavioral events.</p>
+            </div>
+        </div>
+
+        <!-- Q187 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q187</span> What is the difference between `reg` and `logic`?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> `logic` is a SystemVerilog enhancement. It solves the Verilog `wire` vs `reg` confusion. You can use `logic` for both continuous assignments (`assign logic_var = ...`) and procedural blocks (`always @(*) logic_var = ...`), heavily simplifying RTL coding.</p>
+            </div>
+        </div>
+
+        <!-- Q188 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q188</span> Why must parameters be evaluated at compile time?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Parameters define physical hardware limits (like bus widths or the number of instantiated modules). Physical silicon cannot change its bus width after it has been manufactured, so these values must be resolved before synthesis begins.</p>
+            </div>
+        </div>
+
+        <!-- Q189 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q189</span> What is a hierarchical reference in Verilog?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Accessing variables deeply buried in sub-modules using dot notation. E.g., `tb_top.dut.fsm_block.current_state`. Excellent for testbench verification, but STRICTLY BANNED in RTL synthesis because it breaks physical module isolation.</p>
+            </div>
+        </div>
+
+        <!-- Q190 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q190</span> What happens if you connect a 4-bit output port to a 2-bit wire?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Verilog quietly truncates the upper 2 bits of the output port, issuing only a compiler warning. The lower 2 bits connect to the wire. (Another reason to always check synthesis warnings!).</p>
+            </div>
+        </div>
+
+        <!-- Q191 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q191</span> How do you force synthesis to keep a register that it thinks is useless?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Use the <code>(* preserve = "true" *)</code> or <code>(* dont_touch = "true" *)</code> attribute right before the `reg` declaration.</p>
+            </div>
+        </div>
+
+        <!-- Q192 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q192</span> Can an <code>assign</code> statement have a sensitivity list?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> No. Continuous assignments are implicitly sensitive to all signals on the right-hand side. The concept of an explicit sensitivity list only applies to procedural `always` blocks.</p>
+            </div>
+        </div>
+
+        <!-- Q193 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q193</span> Is `always @(*)` sensitive to memory arrays?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Yes, but typically only to the specific index being accessed. If `array[index]` is read, changes to `index` trigger the block. Changes to the array data at that index also trigger it.</p>
+            </div>
+        </div>
+
+        <!-- Q194 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q194</span> What is the default base for numbers in Verilog if not specified? (e.g., `a = 15;`)</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Decimal. A plain `15` is treated as a 32-bit signed decimal number.</p>
+            </div>
+        </div>
+
+        <!-- Q195 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q195</span> How do you write a binary number with a "don't care" bit?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Using `?` or `x`. Example: `4'b10?1` (Matches 1001 or 1011 in a `casex` statement).</p>
+            </div>
+        </div>
+
+        <!-- Q196 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q196</span> What is the difference between `case`, `casex`, and `casez`?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>&bull; `case`: Exact match required (treats X/Z as literal X/Z).
+                <br>&bull; `casez`: Treats `Z` (and `?`) as don't cares.
+                <br>&bull; `casex`: Treats `X` AND `Z` (and `?`) as don't cares. (Avoid in RTL to prevent silent X-propagation masking).</p>
+            </div>
+        </div>
+
+        <!-- Q197 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q197</span> How do you define a MACRO with an argument?</div>
+            <div class="qa-body">
+                <pre class="v-code">`define MAX(a, b) ((a) > (b) ? (a) : (b))
+// Used as: result = `MAX(x, y);</pre>
+            </div>
+        </div>
+
+        <!-- Q198 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q198</span> What happens if you forget to declare a module's inputs/outputs inside the port list?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> By default (Verilog-95 legacy), undeclared ports default to 1-bit `wire`. Modern Verilog-2001 ANSI style requires explicit declaration `module my_mod(input wire clk, output reg out);` to prevent silent bugs.</p>
+            </div>
+        </div>
+
+        <!-- Q199 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q199</span> What is the difference between `<` and `<= ` logic operators?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> `<` is strictly Less Than. `<=` serves a double purpose in Verilog: in an expression (`if (a <= b)`) it means Less Than or Equal. In an assignment (`a <= b;`) it means Non-Blocking assignment.</p>
+            </div>
+        </div>
+
+        <!-- Q200 -->
+        <div class="qa-card border-success border-2">
+            <div class="qa-header bg-success text-white"><span class="q-number bg-dark">Q200</span> The Final Test: What does this code do?
+            <pre class="v-code text-dark bg-white">always @(posedge clk) begin
+    a &lt;= a ^ b;
+    b &lt;= a ^ b;
+    a &lt;= a ^ b;
+end</pre></div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> <strong>It fails. It does NOT swap A and B.</strong></p>
+                <div class="trap-box">
+                    <strong>The Ultimate Trap:</strong> In software, XOR swapping works because updates are sequential. In a Non-Blocking Verilog block, <em>all RHS equations are evaluated simultaneously using the OLD values</em>. <br><br>
+                    RHS evaluation: <br>
+                    Line 1 schedules `a` to become `old_a ^ old_b`.<br>
+                    Line 2 schedules `b` to become `old_a ^ old_b`.<br>
+                    Line 3 schedules `a` to become `old_a ^ old_b` (overwriting Line 1).<br><br>
+                    Result: Both `a` and `b` receive the identical XOR result. The data is destroyed. To swap in Verilog, just use `a <= b; b <= a;`!
+                </div>
+            </div>
+        </div>
+
+        <!-- Final Transition -->
+        <div class="card bg-dark text-white border-0 shadow text-center p-5 mt-5 mb-5 rounded-4">
+            <h2 class="fw-bold mb-3"><i class="fa-solid fa-flag-checkered text-warning me-3"></i>Chapter 2 Completely Finished</h2>
+            <p class="fs-5 text-light mb-4">You have mastered the Verilog HDL mega-module. You now have a Silicon Engineer's understanding of the event queue, blocking vs non-blocking logic, latches, and simulation traps.</p>
+            <hr class="border-secondary mb-4">
+            <p class="text-info mb-4">Next, we move to the physics of the silicon itself. Chapter 3 covers CMOS logic, power dissipation, short-channel effects, and physical phenomena like Latch-up.</p>
+        </div>
+
+    </main>
+
+    <footer class="bg-dark text-center text-white py-4 mt-auto border-top border-secondary">
+        <p class="mb-0">© 2026 Complete VLSI Interview Handbook. Crafted for silicon engineers.</p>
+    </footer>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
