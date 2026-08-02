@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 2 (Part 1): Verilog Q&A (50 Questions) - VLSI Handbook</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        .qa-card { background: white; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .qa-header { background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 15px 20px; font-weight: 700; color: #0f172a; border-top-left-radius: 8px; border-top-right-radius: 8px; }
+        .qa-body { padding: 20px; }
+        .q-number { background: #0b3d91; color: white; padding: 3px 10px; border-radius: 4px; font-size: 0.85rem; margin-right: 10px; }
+        .tricky-badge { background: #dc2626; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; float: right; }
+        .concept-box { background-color: #f0fdf4; border-left: 4px solid #16a34a; padding: 12px 15px; margin-top: 15px; border-radius: 0 4px 4px 0; font-size: 0.95rem; }
+        .trap-box { background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 12px 15px; margin-top: 15px; border-radius: 0 4px 4px 0; font-size: 0.95rem; }
+        pre.v-code { background: #1e293b; color: #f8fafc; padding: 15px; border-radius: 6px; font-size: 0.9rem; margin: 10px 0; }
+    </style>
+</head>
+<body class="bg-light">
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html"><i class="fa-solid fa-microchip me-2"></i>VLSI Handbook</a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="#">Verilog Q&A (Part 1)</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <header class="bg-dark text-white py-4 mb-4 shadow">
+        <div class="container">
+            <h2>Chapter 2: Verilog HDL — Part 1 (Q1 to Q50)</h2>
+            <p class="mb-0 text-info">Simulation Engine, Stratified Event Queue, Data Types, Operators & Operators Mechanics</p>
+        </div>
+    </header>
+
+    <main class="container my-4">
+
+        <!-- ================= SECTION 1: SIMULATION ENGINE & EVENT QUEUE (Q1 - Q10) ================= -->
+        <h3 class="text-primary border-bottom pb-2 mb-4"><i class="fa-solid fa-gears me-2"></i>1. Verilog Event Queue & Simulation Engine</h3>
+
+        <!-- Q1 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q1</span> What is the Verilog Stratified Event Queue, and why is it important for RTL engineers?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> The Verilog Stratified Event Queue is an algorithmic queue used by simulators (e.g., VCS, ModelSim) to order and execute concurrent events happening at the exact same simulation time step. It is crucial because physical hardware operates simultaneously, but software simulators must execute sequentially on a single-threaded CPU. The event queue guarantees deterministic behavior across different EDA tools when RTL is coded correctly.</p>
+            </div>
+        </div>
+
+        <!-- Q2 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q2</span> List the main regions of the Verilog-2001 Stratified Event Queue in order of execution.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> At any given simulation time step, events execute in these primary regions:</p>
+                <ol>
+                    <li><strong>Active Region:</strong> Evaluates RHS of all assignments, executes blocking assignments (<code>=</code>), continuous assignments (<code>assign</code>), and <code>$display</code> statements. Evaluates RHS of non-blocking assignments (<code>&lt;=</code>).</li>
+                    <li><strong>Inactive Region:</strong> Executes events scheduled with a <code>#0</code> delay.</li>
+                    <li><strong>Non-Blocking Assign (NBA) Update Region:</strong> Updates the LHS variables of all non-blocking assignments evaluated in the Active region.</li>
+                    <li><strong>Monitor / Postponed Region:</strong> Executes <code>$monitor</code>, <code>$strobe</code>, and updates VCD waveform dumps after all updates are stable.</li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- Q3 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q3</span> <span class="tricky-badge">Tricky</span> What happens when you execute <code>#0 a = b;</code>? Which event queue region does it trigger, and why is it banned in commercial RTL guidelines?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> <code>#0</code> forces the execution of <code>a = b</code> to move from the current Active Region to the <strong>Inactive Region</strong> of the current time step. It is strictly banned in production RTL (Qualcomm/AMD guidelines) because it introduces artificial execution ordering, creates non-deterministic simulation race conditions, and cannot be synthesized into physical silicon hardware.</p>
+                <div class="trap-box">
+                    <strong>Trap / Secret Used:</strong> Interviewers ask this to test if you rely on hacky simulation tricks. Always state that <code>#0</code> does not defer execution to the next clock edge or time step—it deferments to the <em>Inactive Region of the same time step</em>.
+                </div>
+            </div>
+        </div>
+
+        <!-- Q4 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q4</span> <span class="tricky-badge">Tricky</span> Analyze these two concurrent blocks:
+            <pre class="v-code">always @(posedge clk) a <= b;
+always @(posedge clk) b <= a;</pre>
+            Why is there NO race condition? Trace using the Event Queue.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> There is no race condition; values of <code>a</code> and <code>b</code> are reliably swapped.
+                <br>1. <strong>Active Region:</strong> The RHS of both blocks are read simultaneously. The current value of <code>b</code> is evaluated for <code>a</code>, and current <code>a</code> is evaluated for <code>b</code>.
+                <br>2. <strong>NBA Region:</strong> The LHS variables <code>a</code> and <code>b</code> are updated simultaneously with the values cached during the Active Region.</p>
+                <div class="concept-box">
+                    <strong>Concept Used:</strong> Non-blocking assignments (<code>&lt;=</code>) enforce a strict 2-step process: <strong>Evaluate RHS in Active Region</strong> &rarr; <strong>Update LHS in NBA Region</strong>. This separation guarantees race-free swaps.
+                </div>
+            </div>
+        </div>
+
+        <!-- Q5 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q5</span> <span class="tricky-badge">Tricky</span> Analyze these two concurrent blocks:
+            <pre class="v-code">always @(posedge clk) a = b;
+always @(posedge clk) b = a;</pre>
+            What is the outcome in simulation? Is it deterministic?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> This creates a <strong>Simulation Race Condition</strong>. The behavior is non-deterministic and tool-dependent. Both blocks execute in the Active Region. If Block 1 executes first, <code>a</code> gets <code>b</code>'s value, and then Block 2 executes, giving <code>b</code> the new value of <code>a</code> (both end up with <code>b</code>'s original value). If Block 2 executes first, both end up with <code>a</code>'s original value.</p>
+                <div class="trap-box">
+                    <strong>Trap Used:</strong> Blocking assignments (<code>=</code>) evaluate AND update immediately inside the Active Region. Never use blocking assignments across multiple edge-triggered blocks!
+                </div>
+            </div>
+        </div>
+
+        <!-- Q6 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q6</span> Compare <code>$display</code>, <code>$write</code>, <code>$strobe</code>, and <code>$monitor</code> in terms of how they execute in the Event Queue.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong></p>
+                <ul>
+                    <li><code>$display</code>: Executes in the <strong>Active Region</strong> immediately when encountered, adds a newline character.</li>
+                    <li><code>$write</code>: Identical to <code>$display</code> (Active Region), but does not add a automatic newline.</li>
+                    <li><code>$strobe</code>: Postpones execution to the <strong>Postponed/Monitor Region</strong> at the very end of the time step after all updates are stable.</li>
+                    <li><code>$monitor</code>: Automatically executes in the <strong>Postponed Region</strong> whenever any of its arguments change value. Only one <code>$monitor</code> can be active at a time.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Q7 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q7</span> <span class="tricky-badge">Tricky</span> Given the snippet below, what will <code>$display</code> print vs what will <code>$strobe</code> print?
+            <pre class="v-code">initial begin
+    a = 10;
+    a <= 20;
+    $display("Display: a = %d", a);
+    $strobe("Strobe: a = %d", a);
+end</pre></div>
+            <div class="qa-body">
+                <p><strong>Output:</strong><br>
+                <code>Display: a = 10</code><br>
+                <code>Strobe: a = 20</code></p>
+                <div class="concept-box">
+                    <strong>Concept Used:</strong> <code>$display</code> runs in the Active Region before the NBA Region updates <code>a</code> to 20. <code>$strobe</code> runs in the Postponed Region after the NBA update completes.
+                </div>
+            </div>
+        </div>
+
+        <!-- Q8 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q8</span> What is a simulation delta cycle (delta delay)?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A delta cycle is a zero-time-duration execution step inside the simulator. It allows the simulator to evaluate causality (cause-and-effect chain) across combination logic or event regions without advancing the primary time counter (e.g., time remains at 10ns while multiple delta iterations execute).</p>
+            </div>
+        </div>
+
+        <!-- Q9 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q9</span> What is the default initial state of an uninitialized <code>wire</code> vs an uninitialized <code>reg</code> at time t=0?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>&bull; Uninitialized <code>wire</code> defaults to <strong><code>Z</code></strong> (High Impedance / Floating).
+                <br>&bull; Uninitialized <code>reg</code> defaults to <strong><code>X</code></strong> (Unknown / Uninitialized state).</p>
+            </div>
+        </div>
+
+        <!-- Q10 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q10</span> Can a <code>wire</code> have multiple drivers in Verilog? What value does it assume if driven by both 1 and 0?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Yes, a <code>wire</code> (net type) supports multiple drivers. If one driver pushes logic 1 and another pushes logic 0 to the same wire simultaneously, signal contention occurs, and the wire resolves to <strong><code>X</code></strong> (Unknown/Contention).</p>
+            </div>
+        </div>
+
+
+        <!-- ================= SECTION 2: DATA TYPES & ARRAYS (Q11 - Q25) ================= -->
+        <h3 class="text-primary border-bottom pb-2 my-4"><i class="fa-solid fa-database me-2"></i>2. Data Types, Variables & Memory Arrays</h3>
+
+        <!-- Q11 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q11</span> What is the fundamental difference between <code>wire</code> and <code>reg</code> from a synthesis vs simulation perspective?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>&bull; <strong>Simulation Perspective:</strong> <code>wire</code> is a net that cannot hold a value (must be continuously driven). <code>reg</code> is a variable object that holds its assigned value until updated inside a procedural block.
+                <br>&bull; <strong>Synthesis Perspective:</strong> Both can represent physical wires or gates! A <code>reg</code> inside an <code>always @(*)</code> block synthesizes into a pure combinational wire/gate, NOT a hardware register.</p>
+            </div>
+        </div>
+
+        <!-- Q12 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q12</span> Explain the 4-state logic system in Verilog and the physical meaning of each value.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>&bull; <strong>0:</strong> Logic Low / Ground (GND).
+                <br>&bull; <strong>1:</strong> Logic High / Supply (VDD).
+                <br>&bull; <strong>X:</strong> Unknown / Uninitialized / Driver Contention.
+                <br>&bull; <strong>Z:</strong> High Impedance / Tri-stated / Disconnected wire.</p>
+            </div>
+        </div>
+
+        <!-- Q13 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q13</span> <span class="tricky-badge">Tricky</span> What is the output of the addition <code>4'b1010 + 4'b00x1</code>?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> <code>4'bxxxx</code> (or <code>4'bxx11</code> depending on simulator, but structurally <strong><code>4'bxxxx</code></strong> because 'X' propagates through bitwise addition).</p>
+                <div class="concept-box">
+                    <strong>Concept Used:</strong> <strong>X-Propagation</strong>. Any arithmetic operation (+, -, *, /) containing a single 'X' or 'Z' bit causes the entire mathematical result bit-vector to contaminate to 'X'.
+                </div>
+            </div>
+        </div>
+
+        <!-- Q14 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q14</span> <span class="tricky-badge">Tricky</span> What is the difference between <code>==</code> and <code>===</code> operators? Is <code>===</code> synthesizable?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>&bull; <code>==</code> (Logical Equality): Returns <strong><code>X</code></strong> if either operand contains 'X' or 'Z'.
+                <br>&bull; <code>===</code> (Case Equality): Performs an exact 4-state bitwise comparison including 'X' and 'Z'. Returns strictly 1 or 0.
+                <br>&bull; <strong>Synthesis:</strong> <code>===</code> is <strong>NON-SYNTHESIZABLE</strong>. It is strictly used in testbenches.</p>
+                <div class="trap-box">
+                    <strong>Trap Used:</strong> Attempting to use <code>===</code> in RTL will cause synthesis tools (e.g., Synopsys Design Compiler) to throw an error or ignore the check, creating a simulation-synthesis mismatch!
+                </div>
+            </div>
+        </div>
+
+        <!-- Q15 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q15</span> What is the output of:
+            <br>1) <code>(4'b10xz == 4'b10xz)</code>
+            <br>2) <code>(4'b10xz === 4'b10xz)</code></div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>1) Output is <strong><code>1'bx</code></strong> (because <code>==</code> cannot resolve X/Z comparison).
+                <br>2) Output is <strong><code>1'b1</code></strong> (because <code>===</code> sees identical 4-state literal matches).</p>
+            </div>
+        </div>
+
+        <!-- Q16 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q16</span> What are Packed vs Unpacked arrays in Verilog? Provide code syntax.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>&bull; <strong>Packed Array (Vector):</strong> Declared <em>before</em> the variable name. Represents a continuous contiguous bus.
+                <br>&bull; <strong>Unpacked Array (Memory):</strong> Declared <em>after</em> the variable name. Represents a collection of registers/memories.</p>
+                <pre class="v-code">wire [7:0] packed_bus;       // 8-bit packed vector
+reg [7:0] memory [0:1023];  // Unpacked array: 1024 depth array of 8-bit words</pre>
+            </div>
+        </div>
+
+        <!-- Q17 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q17</span> How are Packed vs Unpacked arrays laid out in simulator memory?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Packed arrays are guaranteed to be stored as a single contiguous set of bits in memory (efficient bit-slicing). Unpacked arrays store elements in separate memory words/slots, allowing independent element indexing.</p>
+            </div>
+        </div>
+
+        <!-- Q18 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q18</span> Can you select a bit-slice of an element in an unpacked array directly in Verilog-2001? Write syntax.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Yes. Syntax: <code>array_name[element_index][bit_high:bit_low]</code>
+                <br>Example: <code>wire lower_nibble = memory[42][3:0];</code> (Extracts lower 4 bits of memory address 42).</p>
+            </div>
+        </div>
+
+        <!-- Q19 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q19</span> Write Verilog code to model a 2 Kilobyte RAM block where each word is 16 bits wide.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> 2 KB = 2048 Bytes = 1024 words of 16-bits (2 Bytes per word).</p>
+                <pre class="v-code">reg [15:0] ram_block [0:1023]; // 1024 depth x 16-bit width = 2048 Bytes</pre>
+            </div>
+        </div>
+
+        <!-- Q20 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q20</span> <span class="tricky-badge">Tricky</span> What is Indexed Part-Select (<code>+:</code> and <code>-:</code>)? Why is it necessary?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Standard part-select (e.g., <code>bus[i+3 : i]</code>) is illegal in Verilog when <code>i</code> is a variable because the slice width must be fixed at compile time. Indexed part-select solves this by allowing variable base index with a <strong>constant width</strong>.</p>
+                <p>Syntax: <code>data[base_expr +: width]</code> or <code>data[base_expr -: width]</code></p>
+                <div class="concept-box">
+                    <strong>Example:</strong> <code>data[i +: 4]</code> starting at index <code>i=8</code> selects 4 bits upwards: <code>data[11:8]</code>. Width is fixed to 4.
+                </div>
+            </div>
+        </div>
+
+        <!-- Q21 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q21</span> What is the difference between <code>integer</code>, <code>reg</code>, <code>time</code>, and <code>real</code> data types in Verilog?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>&bull; <code>reg</code>: Variable length vector (default 1-bit), 4-state. Synthesizable.
+                <br>&bull; <code>integer</code>: Signed 32-bit vector, 4-state. Synthesizable (typically used for loop indices).
+                <br>&bull; <code>time</code>: Unsigned 64-bit vector, 4-state. Used in testbenches for <code>$time</code>.
+                <br>&bull; <code>real</code>: 64-bit IEEE floating-point scalar, 2-state. <strong>NON-SYNTHESIZABLE</strong>.</p>
+            </div>
+        </div>
+
+        <!-- Q22 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q22</span> <span class="tricky-badge">Tricky</span> What happens if you assign a negative number to an unsigned <code>reg [3:0]</code>? E.g., <code>reg [3:0] a = -4;</code></div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Verilog automatically converts the negative integer to its 2's complement equivalent bit pattern. -4 in 4-bit 2's complement is <code>4'b1100</code> (12 in unsigned decimal).</p>
+            </div>
+        </div>
+
+        <!-- Q23 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q23</span> What is the default signedness of expressions in Verilog? How do you force a <code>reg</code> or <code>wire</code> to be signed?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> By default, all <code>wire</code> and <code>reg</code> declarations are <strong>unsigned</strong>. You force them to be signed using the <code>signed</code> keyword:
+                <pre class="v-code">reg signed [7:0] s_data;
+wire signed [15:0] s_result;</pre></p>
+            </div>
+        </div>
+
+        <!-- Q24 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q24</span> <span class="tricky-badge">Tricky</span> What happens if you perform an operation mixing a <code>signed</code> signal and an <code>unsigned</code> signal? E.g., <code>signed_a + unsigned_b</code>.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> If ANY operand in an expression is unsigned, <strong>Verilog automatically converts ALL operands in the expression to unsigned!</strong> The signed signal is treated as unsigned, leading to silent calculation bugs.</p>
+                <div class="trap-box">
+                    <strong>Trap / Concept:</strong> This is a major Qualcomm/AMD interview question. To preserve signed evaluation, explicitly cast the unsigned operand using <code>$signed(unsigned_b)</code>!
+                </div>
+            </div>
+        </div>
+
+        <!-- Q25 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q25</span> What do system functions <code>$signed()</code> and <code>$unsigned()</code> do?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> They are type-casting functions. <code>$signed(x)</code> returns the same bit pattern as <code>x</code>, but forces the Verilog expression evaluator to treat it as a signed 2's complement number.</p>
+            </div>
+        </div>
+
+
+        <!-- ================= SECTION 3: OPERATORS & MECHANICS (Q26 - Q40) ================= -->
+        <h3 class="text-primary border-bottom pb-2 my-4"><i class="fa-solid fa-calculator me-2"></i>3. Operators, Bit-Extensions, and Shift Logic</h3>
+
+        <!-- Q26 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q26</span> What is a Reduction Operator? List all reduction operators in Verilog.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A reduction operator takes a single multi-bit vector operand, applies a bitwise operation across all its bits, and reduces it to a <strong>single 1-bit result</strong>.
+                <br>Operators: <code>&</code> (AND), <code>~&</code> (NAND), <code>|</code> (OR), <code>~|</code> (NOR), <code>^</code> (XOR), <code>~^</code> or <code>^~</code> (XNOR).</p>
+            </div>
+        </div>
+
+        <!-- Q27 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q27</span> How do you generate an odd-parity bit for an 8-bit bus <code>data[7:0]</code> in 1 line of Verilog?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> <code>wire parity = ^data;</code> (Applies reduction XOR across all 8 bits).</p>
+            </div>
+        </div>
+
+        <!-- Q28 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q28</span> Difference between Bitwise AND (<code>&</code>) and Logical AND (<code>&&</code>). Give outputs for <code>4'b1010 & 4'b1100</code> vs <code>4'b1010 && 4'b1100</code>.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>&bull; <code>4'b1010 & 4'b1100</code> = <strong><code>4'b1000</code></strong> (Bit-by-bit AND operation, 4-bit output).
+                <br>&bull; <code>4'b1010 && 4'b1100</code> = <strong><code>1'b1</code></strong> (Evaluates non-zero operands as True, returns 1-bit True/False boolean).</p>
+            </div>
+        </div>
+
+        <!-- Q29 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q29</span> Explain Concatenation <code>{}</code> and Replication <code>{N{}}</code> operators with code examples.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>&bull; Concatenation joins vectors together: <code>wire [7:0] bus = {a[3:0], b[3:0]};</code>
+                <br>&bull; Replication repeats a vector N times: <code>wire [7:0] bus = {4{2'b10}}; // Outputs 8'b10101010</code></p>
+            </div>
+        </div>
+
+        <!-- Q30 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q30</span> <span class="tricky-badge">Tricky</span> Write a 1-line expression to sign-extend a 4-bit signed signal <code>in[3:0]</code> into an 8-bit signal <code>out[7:0]</code> using replication.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> <code>assign out = {{4{in[3]}}, in[3:0]};</code></p>
+                <div class="concept-box">
+                    <strong>Concept Used:</strong> The MSB <code>in[3]</code> is the sign bit. Replicating it 4 times at the head of the vector preserves 2's complement sign extension!
+                </div>
+            </div>
+        </div>
+
+        <!-- Q31 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q31</span> Difference between Logical Shift (<code>&lt;&lt;</code>, <code>&gt;&gt;</code>) and Arithmetic Shift (<code>&lt;&lt;&lt;</code>, <code>&gt;&gt;&gt;</code>).</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>&bull; Logical Right Shift (<code>&gt;&gt;</code>): Always fills freed MSB positions with <strong>zeros</strong>.
+                <br>&bull; Arithmetic Right Shift (<code>&gt;&gt;&gt;</code>): If the operand is <strong>signed</strong>, it replicates the MSB (sign bit) to preserve sign. If unsigned, it behaves like a logical shift.</p>
+            </div>
+        </div>
+
+        <!-- Q32 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q32</span> <span class="tricky-badge">Tricky</span> What is the value of <code>res</code> in this code?
+            <pre class="v-code">reg [3:0] val = 4'b1000; // Unsigned!
+wire [3:0] res = val >>> 2;</pre></div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> <code>res = 4'b0010</code> (NOT <code>4'b1110</code>!).</p>
+                <div class="trap-box">
+                    <strong>Trap Used:</strong> Even though the operator used is arithmetic shift <code>&gt;&gt;&gt;</code>, the variable <code>val</code> was NOT declared with the <code>signed</code> keyword! Verilog defaults to zero-fill unless declared as <code>reg signed [3:0]</code>.
+                </div>
+            </div>
+        </div>
+
+        <!-- Q33 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q33</span> Explain Bit-Width Expansion during addition. How do you prevent overflow in <code>wire [7:0] a, b;</code>?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Adding two N-bit numbers produces an (N+1)-bit maximum sum. To prevent overflow, size the LHS destination bus to 9 bits and evaluate width:
+                <pre class="v-code">wire [7:0] a, b;
+wire [8:0] sum = a + b; // Verilog automatically pads operands to 9-bits before adding</pre></p>
+            </div>
+        </div>
+
+        <!-- Q34 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q34</span> What is the output of <code>4'b1010 ^~ 4'b0101</code>? What operator is this?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Output is <strong><code>4'b0000</code></strong>. The operator <code>^~</code> or <code>~^</code> is the bitwise XNOR operator (returns 1 when bits match, 0 when they differ).</p>
+            </div>
+        </div>
+
+        <!-- Q35 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q35</span> What is the Conditional / Ternary Operator <code>? :</code>? Can it be nested?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> It evaluates <code>sel ? in1 : in0</code> to implement a 2:1 MUX combinational logic. Yes, it can be freely nested to implement priority encoders or multi-input MUXes.</p>
+            </div>
+        </div>
+
+        <!-- Q36 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q36</span> <span class="tricky-badge">Tricky</span> What does a ternary expression synthesize to if <code>sel</code> evaluates to <code>X</code> in simulation? E.g., <code>out = (1'bx) ? a : b;</code></div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> In simulation, if select is <code>X</code>, the ternary operator performs bitwise comparison: bits where <code>a</code> and <code>b</code> match are passed through; bits where they differ output <strong><code>X</code></strong>. In hardware, a 2:1 MUX will physically select either A or B, demonstrating a simulation-synthesis abstraction difference!</p>
+            </div>
+        </div>
+
+        <!-- Q37 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q37</span> How does Verilog evaluate expression bit-widths? What is a Self-Determining vs Context-Determined expression?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>&bull; <strong>Self-Determining:</strong> Bit-width depends strictly on the expression itself regardless of LHS (e.g., shifts, logical comparisons).
+                <br>&bull; <strong>Context-Determined:</strong> Bit-width is padded to match the maximum width of the LHS destination variable or maximum operand width in the equation before computing.</p>
+            </div>
+        </div>
+
+        <!-- Q38 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q38</span> What is the purpose of built-in gate primitives like <code>nand</code>, <code>nor</code>, <code>bufif1</code>, <code>notif0</code>?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> They allow structural gate-level modeling directly without needing a module definition. E.g., <code>nand g1 (out, in1, in2);</code> (Note: Output pin is always listed first!).</p>
+            </div>
+        </div>
+
+        <!-- Q39 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q39</span> Why is module port instantiation by name preferred over instantiation by position?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Instantiation by position (<code>sub_mod m1 (a, b, c);</code>) is highly error-prone if port order changes in the sub-module. Instantiation by name (<code>sub_mod m1 (.clk(a), .data(b));</code>) is self-documenting and order-independent.</p>
+            </div>
+        </div>
+
+        <!-- Q40 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q40</span> How do you model a Tri-state Buffer in Verilog using continuous assignment?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <pre class="v-code">assign data_bus = (oe) ? tx_data : 1'bz;</pre></p>
+            </div>
+        </div>
+
+
+        <!-- ================= SECTION 4: PARAMETERS & COMPILER DIRECTIVES (Q41 - Q50) ================= -->
+        <h3 class="text-primary border-bottom pb-2 my-4"><i class="fa-solid fa-sliders me-2"></i>4. Directives, Parameters & Code Generation</h3>
+
+        <!-- Q41 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q41</span> What is the difference between <code>`define</code>, <code>parameter</code>, and <code>localparam</code>?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>&bull; <code>`define</code>: Global macro pre-processor directive. Accessible across ALL files in compile order.
+                <br>&bull; <code>parameter</code>: Local to a specific module scope. **Can be overridden** during top-level instantiation.
+                <br>&bull; <code>localparam</code>: Local to a module scope. **CANNOT be overridden** from top-level (used for dependent constants like state encodings).</p>
+            </div>
+        </div>
+
+        <!-- Q42 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q42</span> Why is <code>`default_nettype none</code> mandatory in commercial Verilog coding standards?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> By default, Verilog automatically infers an undeclared signal name as a 1-bit <code>wire</code>. If you misspell a bus name (e.g., <code>data_buss</code>), Verilog silently creates a 1-bit wire, causing catastrophic silent net disconnection bugs. <code>`default_nettype none</code> disables auto-wire creation and forces compiler errors for undeclared variables.</p>
+            </div>
+        </div>
+
+        <!-- Q43 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q43</span> What is a <code>generate</code> block in Verilog? When must you use it?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> A <code>generate</code> block dynamically generates hardware modules, assignments, or procedural blocks at compile time based on parameters. Used for repeating structures (e.g., instantiating 32 bit-slice ALUs) or conditional parameter-based hardware selection.</p>
+            </div>
+        </div>
+
+        <!-- Q44 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q44</span> What is a <code>genvar</code> variable? Can it be modified at runtime during simulation?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> <code>genvar</code> is a special loop variable used exclusively inside <code>generate-for</code> loops. It exists strictly at elaboration/compile time and <strong>cannot be modified at runtime</strong> during simulation.</p>
+            </div>
+        </div>
+
+        <!-- Q45 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q45</span> Write a Verilog <code>generate</code> block to instantiate an array of N XOR gates.</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <pre class="v-code">parameter N = 8;
+genvar i;
+generate
+    for (i = 0; i < N; i = i + 1) begin : xor_loop
+        xor g_inst (out[i], a[i], b[i]);
+    end
+endgenerate</pre></p>
+            </div>
+        </div>
+
+        <!-- Q46 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q46</span> <span class="tricky-badge">Tricky</span> What is the difference between a <code>generate-for</code> loop and a standard <code>for</code> loop inside an <code>always</code> block?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <br>&bull; <code>generate-for</code>: Duplicates physical hardware blocks/modules at compile-time.
+                <br>&bull; <code>always block for-loop</code>: Represents behavioral iteration inside a single procedural block. Unrolls combinational logic, does NOT instantiate multiple hardware modules!</p>
+            </div>
+        </div>
+
+        <!-- Q47 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q47</span> How do you automatically calculate address bus width for a parameter <code>DEPTH</code> using system function <code>$clog2</code>?</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong>
+                <pre class="v-code">parameter DEPTH = 256;
+localparam ADDR_WIDTH = $clog2(DEPTH); // Calculates log2(256) = 8 bits</pre></p>
+            </div>
+        </div>
+
+        <!-- Q48 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q48</span> What happens if you assign a 5-bit signal to a 3-bit signal in Verilog? E.g., <code>wire [2:0] out = 5'b11010;</code></div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Verilog automatically **truncates the upper bits** without warning! <code>out</code> receives lower 3 bits: <code>3'b010</code>. (Major source of silent bus width mismatch bugs).</p>
+            </div>
+        </div>
+
+        <!-- Q49 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q49</span> What happens if you assign a 3-bit signal to a 5-bit signal in Verilog? E.g., <code>wire [4:0] out = 3'b101;</code></div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> Verilog automatically **zero-extends** the upper bits. <code>out</code> becomes <code>5'b00101</code>. If the source was declared <code>signed</code>, it sign-extends instead.</p>
+            </div>
+        </div>
+
+        <!-- Q50 -->
+        <div class="qa-card">
+            <div class="qa-header"><span class="q-number">Q50</span> <span class="tricky-badge">Tricky</span> Explain the compiler difference between <code>`include "file.v"</code> and compiling files together in a filelist (<code>-f files.f</code>).</div>
+            <div class="qa-body">
+                <p><strong>Answer:</strong> <code>`include</code> literally copy-pastes the code of <code>file.v</code> into the current file pre-processor stream before compilation. A filelist tells the EDA tool to compile separate files into the library. Re-defining modules inside an <code>`included</code> file causes duplicate module definition errors.</p>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="bg-dark text-center text-white py-4 mt-5 border-top border-secondary">
+        <p class="mb-0">© 2026 Complete VLSI Interview Handbook. Crafted for silicon engineers.</p>
+    </footer>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
